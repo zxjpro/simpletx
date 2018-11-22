@@ -78,6 +78,13 @@ class DefaultHttpRequest implements HttpRequest{
             }
         }
 
+        if(this.builder.getConnectionTimeout() != -1){
+            this.conn.setConnectTimeout(this.builder.getConnectionTimeout());
+        }
+        if(this.builder.getReadTimeout() != -1){
+            this.conn.setReadTimeout(this.builder.getReadTimeout());
+        }
+
         this.conn.setRequestProperty("Content-Type" , this.builder.getContentType());
 
         this.conn.connect();

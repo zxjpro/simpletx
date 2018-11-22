@@ -3,14 +3,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>simpletx</artifactId>
+        <artifactId>simpletx-sample</artifactId>
         <groupId>com.xiaojiezhu.simpletx</groupId>
         <version>1.0</version>
     </parent>
-
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>simpletx-util</artifactId>
+    <artifactId>sample-http</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>sample-http-order</module>
+        <module>sample-http-coupon</module>
+        <module>sample-http-pay</module>
+        <module>sample-http-balance</module>
+        <module>sample-http-score</module>
+    </modules>
 
 
 </project>

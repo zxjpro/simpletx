@@ -30,6 +30,16 @@ public class HttpClient {
     @Getter
     private boolean urlEncoding = true;
 
+    @Getter
+    @Setter
+    private int connectionTimeout = -1;
+
+    @Getter
+    @Setter
+    private int readTimeout = -1;
+
+
+
 
     public Builder builder(){
         return new Builder();
@@ -57,6 +67,12 @@ public class HttpClient {
         @Getter
         private HeaderHandler headerHandler;
 
+        @Getter
+        private int connectionTimeout = -1;
+
+        @Getter
+        private int readTimeout = -1;
+
         public Builder url(String url){
             this.url = url;
             return this;
@@ -74,6 +90,14 @@ public class HttpClient {
 
         public Builder charset(Charset charset){
             this.charset = charset;
+            return this;
+        }
+        public Builder connectionTimeout(int connectionTimeout){
+            this.connectionTimeout = connectionTimeout;
+            return this;
+        }
+        public Builder readTimeout(int readTimeout){
+            this.readTimeout = readTimeout;
             return this;
         }
 
@@ -173,6 +197,12 @@ public class HttpClient {
 
             this.headerHandler = HttpClient.this.headerHandler;
             this.parameterHandler = HttpClient.this.parameterHandler;
+            if(this.connectionTimeout == -1){
+                this.connectionTimeout = HttpClient.this.connectionTimeout;
+            }
+            if(this.readTimeout == -1){
+                this.readTimeout = HttpClient.this.readTimeout;
+            }
 
             //do header handler
             if(this.getParameterHandler() != null){
