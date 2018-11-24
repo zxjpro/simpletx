@@ -18,4 +18,17 @@
     </modules>
 
 
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.xiaojiezhu.simpletx</groupId>
+            <artifactId>simpletx-util</artifactId>
+        </dependency>
+    </dependencies>
+
+
 </project>

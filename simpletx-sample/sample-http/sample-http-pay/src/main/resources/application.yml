@@ -1,0 +1,8 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /pay
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true

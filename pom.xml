@@ -14,6 +14,8 @@
         <module>simpletx-test</module>
         <module>simpletx-core</module>
         <module>simpletx-sample</module>
+        <module>simpletx-client</module>
+        <module>simpletx-common</module>
     </modules>
 
     <parent>
@@ -81,6 +83,18 @@
                 <groupId>com.xiaojiezhu.simpletx</groupId>
                 <artifactId>sample-common-dao</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.xiaojiezhu.simpletx</groupId>
+                <artifactId>simpletx-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.xiaojiezhu.simpletx</groupId>
+                <artifactId>simpletx-common</artifactId>
+                <version>1.0</version>
             </dependency>
             <!-- project self ... start -->
 

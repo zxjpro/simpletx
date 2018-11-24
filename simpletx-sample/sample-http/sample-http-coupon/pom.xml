@@ -12,4 +12,14 @@
     <artifactId>sample-http-coupon</artifactId>
 
 
+    <dependencies>
+
+        <dependency>
+            <groupId>com.xiaojiezhu.simpletx</groupId>
+            <artifactId>sample-common-dao</artifactId>
+        </dependency>
+
+    </dependencies>
+
+
 </project>

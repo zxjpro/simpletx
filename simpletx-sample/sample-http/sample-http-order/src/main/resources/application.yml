@@ -1,0 +1,8 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /order
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
