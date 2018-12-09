@@ -24,6 +24,7 @@ public class Coupon {
         this.userId = userId;
     }
 
+
     public String getName() {
         return name;
     }

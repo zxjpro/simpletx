@@ -19,6 +19,11 @@
             <artifactId>simpletx-util</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.xiaojiezhu.simpletx</groupId>
+            <artifactId>simpletx-common</artifactId>
+        </dependency>
+
     </dependencies>
 
 

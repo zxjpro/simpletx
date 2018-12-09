@@ -23,4 +23,10 @@ public class BalanceController {
         balanceService.addBalance(userId);
         return "BALANCE_SUCCESS";
     }
+
+    @RequestMapping("/addBalance2")
+    public String addBalance2(@RequestParam("userId")String userId){
+        balanceService.addBalance2(userId);
+        return "BALANCE2_SUCCESS";
+    }
 }

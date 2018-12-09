@@ -1,9 +1,11 @@
 package com.xiaojiezhu.simpletx.sample.http.balance.service.service;
 
+import com.xiaojiezhu.simpletx.common.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.sample.common.dao.db.BalanceDao;
 import com.xiaojiezhu.simpletx.sample.common.dao.model.Balance;
 import com.xiaojiezhu.simpletx.sample.http.balance.service.BalanceService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author xiaojie.zhu
@@ -18,6 +20,7 @@ public class BalanceServiceImpl implements BalanceService {
         this.balanceDao = balanceDao;
     }
 
+    @Transactional
     @Override
     public void addBalance(String userId) {
         Balance balance = new Balance();
@@ -26,4 +29,18 @@ public class BalanceServiceImpl implements BalanceService {
 
         balanceDao.insertBalance(balance);
     }
+
+    @TxTransactional
+    @Override
+    public void addBalance2(String userId) {
+        Balance balance = new Balance();
+        balance.setBalance(222);
+        balance.setUserId(userId);
+
+        balanceDao.insertBalance(balance);
+
+        int i = 1 / 0;
+
+    }
+
 }

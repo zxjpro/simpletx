@@ -1,8 +1,12 @@
 package com.xiaojiezhu.simpletx.sample.http.balance;
 
+import com.xiaojiezhu.simpletx.client.annotation.EnableSimpletxTransaction;
+import com.xiaojiezhu.simpletx.core.TransactionAspectConfigure;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author xiaojie.zhu
@@ -10,6 +14,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @MapperScan("com.xiaojiezhu.simpletx.sample.common.dao.db")
 @SpringBootApplication
+@EnableAspectJAutoProxy(proxyTargetClass = true)
+@EnableSimpletxTransaction
 public class SampleHttpBalanceApp {
 
     public static void main(String[] args) {

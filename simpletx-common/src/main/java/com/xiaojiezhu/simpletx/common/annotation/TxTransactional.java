@@ -1,4 +1,4 @@
-package com.xiaojiezhu.simpletx.core.annotation;
+package com.xiaojiezhu.simpletx.common.annotation;
 
 
 import com.xiaojiezhu.simpletx.common.define.Propagation;
@@ -16,13 +16,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TxTransactional {
 
-    /**
-     *
-     *
-     * 与 {@link #transactionManager} 的作用一样
-     * @return
-     */
-    String value() default "";
 
     /**
      * 在同时有多个事务管理器的情况下，使用哪个事务管理器
@@ -36,5 +29,12 @@ public @interface TxTransactional {
      */
     Propagation propagation() default Propagation.REQUIRED;
 
-    //int timeout() default -1;
+    int timeout() default -1;
+
+
+    Class<? extends Throwable>[] rollbackFor() default {};
+
+
+    String[] rollbackForClassName() default {};
+
 }

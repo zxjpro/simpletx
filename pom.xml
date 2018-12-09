@@ -26,14 +26,26 @@
 
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <netty.version>4.1.31.Final</netty.version>
         <lombok.version>1.18.4</lombok.version>
         <mybatis.spring.boot.version>1.3.2</mybatis.spring.boot.version>
         <druid.version>1.1.12</druid.version>
+        <redisson.version>3.9.1</redisson.version>
+        <aspectjrt.version>1.9.2</aspectjrt.version>
+        <slf4j.version>1.7.25</slf4j.version>
     </properties>
 
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -70,6 +82,32 @@
                 <version>${druid.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjrt</artifactId>
+                <version>${aspectjrt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${aspectjrt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+
+
 
 
             <!-- project self ... start -->
@@ -94,7 +132,13 @@
             <dependency>
                 <groupId>com.xiaojiezhu.simpletx</groupId>
                 <artifactId>simpletx-common</artifactId>
-                <version>1.0</version>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.xiaojiezhu.simpletx</groupId>
+                <artifactId>simpletx-client</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <!-- project self ... start -->
 
@@ -121,6 +165,7 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
         </plugins>
