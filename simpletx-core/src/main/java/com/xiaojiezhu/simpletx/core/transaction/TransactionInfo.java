@@ -1,6 +1,6 @@
 package com.xiaojiezhu.simpletx.core.transaction;
 
-import com.xiaojiezhu.simpletx.core.TransactionMethodAttribute;
+import com.xiaojiezhu.simpletx.core.info.TransactionMethodAttribute;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -27,6 +27,8 @@ public class TransactionInfo {
      * 根事务，最先发起者
      */
     private boolean rootTransaction;
+
+    private String transactionGroupId;
 
 
 }

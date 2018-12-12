@@ -1,6 +1,6 @@
 package com.xiaojiezhu.simpletx.core.handler;
 
-import com.xiaojiezhu.simpletx.core.TransactionMethodAttribute;
+import com.xiaojiezhu.simpletx.core.info.TransactionMethodAttribute;
 import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

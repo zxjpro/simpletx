@@ -1,4 +1,4 @@
-package com.xiaojiezhu.simpletx.core;
+package com.xiaojiezhu.simpletx.core.info;
 
 import com.xiaojiezhu.simpletx.common.define.Propagation;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -35,5 +35,11 @@ public interface TransactionMethodAttribute {
      * @return
      */
     List<String> getRollbackForClassName();
+
+    /**
+     * method of bean name
+     * @return
+     */
+    String getCurrentBeanName();
 
 }

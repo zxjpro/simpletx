@@ -1,4 +1,4 @@
-package com.xiaojiezhu.simpletx.core;
+package com.xiaojiezhu.simpletx.core.info;
 
 import com.xiaojiezhu.simpletx.common.define.Propagation;
 import lombok.AllArgsConstructor;
@@ -25,6 +25,7 @@ public class SimpleTransactionMethodAttribute implements TransactionMethodAttrib
     private int timeout;
     private Propagation propagation;
     private List<String> rollbackForClassName;
+    private String currentBeanName;
 
 
     @Override

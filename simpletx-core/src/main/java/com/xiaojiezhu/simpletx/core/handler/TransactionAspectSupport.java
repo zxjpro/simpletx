@@ -1,10 +1,14 @@
 package com.xiaojiezhu.simpletx.core.handler;
 
+import com.xiaojiezhu.simpletx.common.TransactionGroupFactory;
 import com.xiaojiezhu.simpletx.common.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.common.define.Propagation;
-import com.xiaojiezhu.simpletx.core.SimpleTransactionMethodAttribute;
-import com.xiaojiezhu.simpletx.core.TransactionMethodAttribute;
+import com.xiaojiezhu.simpletx.common.parameter.MethodParameter;
+import com.xiaojiezhu.simpletx.core.info.SimpleTransactionMethodAttribute;
+import com.xiaojiezhu.simpletx.core.info.SimpletxTransactionUtil;
+import com.xiaojiezhu.simpletx.core.info.TransactionMethodAttribute;
 import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
+import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupManager;
 import com.xiaojiezhu.simpletx.util.bean.Arrays;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -44,6 +48,8 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
     private TransactionAttributeSource tas;
 
+    private TransactionGroupManager transactionGroupManager;
+
 
     private final ConcurrentReferenceHashMap<Object, PlatformTransactionManager> transactionManagerCache =
             new ConcurrentReferenceHashMap<>(1);
@@ -76,12 +82,24 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
         }
 
         if(transactionInfo.isRootTransaction()){
+            MethodParameter methodParameter = new MethodParameter();
+            methodParameter.setArgs(point.getArgs());
+            methodParameter.setBeanName(transactionMethodAttribute.getCurrentBeanName());
+            methodParameter.setClassName(this.getClass().getName());
+            methodParameter.setMethodName(transactionMethodAttribute.getMethod().getName());
+
+            transactionGroupManager.createGroup(transactionInfo , methodParameter);
+
             Object result;
             try {
                 result = point.proceed();
+
             } catch (Throwable throwable) {
                 runAfterThrowable(transactionInfo , throwable);
                 throw throwable;
+
+            } finally {
+                SimpletxTransactionUtil.clearThreadResource();
             }
 
             runAfterSuccess(transactionInfo);
@@ -125,8 +143,16 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
         TransactionStatus transactionStatus = tm.getTransaction(txAttr);
 
-        //TODO: 查询是否根事务，这里写死了true
-        TransactionInfo transactionInfo = new TransactionInfo(methodAttribute , tm , txAttr,transactionStatus , true);
+        boolean rootTransaction = false;
+        String transactionGroupId = SimpletxTransactionUtil.getTransactionGroupId();
+        if(transactionGroupId == null){
+            rootTransaction = true;
+            transactionGroupId = TransactionGroupFactory.getInstance().generateGroupId();
+
+            SimpletxTransactionUtil.setTransactionGroupId(transactionGroupId);
+        }
+
+        TransactionInfo transactionInfo = new TransactionInfo(methodAttribute , tm , txAttr,transactionStatus , rootTransaction , transactionGroupId);
 
         return transactionInfo;
 
@@ -209,6 +235,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
         attribute.setTimeout(annotation.timeout());
         attribute.setTransactionManagerName(annotation.transactionManager());
         attribute.setPropagation(annotation.propagation());
+        attribute.setCurrentBeanName(annotation.currentBeanName());
 
         if (!Arrays.isEmpty(annotation.rollbackFor()) || !Arrays.isEmpty(annotation.rollbackForClassName())) {
             List<String> rollbackFor = new ArrayList<>(annotation.rollbackFor().length + annotation.rollbackForClassName().length);
