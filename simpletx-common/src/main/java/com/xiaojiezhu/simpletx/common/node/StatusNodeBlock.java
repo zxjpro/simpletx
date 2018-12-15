@@ -19,6 +19,12 @@ public interface StatusNodeBlock extends NodeBlock {
      */
     State state();
 
+    /**
+     * the method is invoke success and not throw any exception
+     * @return
+     */
+    Boolean isInvokeSuccess();
+
 
 
     enum State{
