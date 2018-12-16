@@ -154,6 +154,12 @@
 
             <dependency>
                 <groupId>com.xiaojiezhu.simpletx</groupId>
+                <artifactId>simpletx-protocol</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.xiaojiezhu.simpletx</groupId>
                 <artifactId>simpletx-client</artifactId>
                 <version>${project.version}</version>
             </dependency>

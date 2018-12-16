@@ -12,4 +12,19 @@
     <artifactId>simpletx-protocol</artifactId>
 
 
+    <dependencies>
+
+        <dependency>
+            <groupId>com.xiaojiezhu.simpletx</groupId>
+            <artifactId>simpletx-util</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+        </dependency>
+
+    </dependencies>
+
+
 </project>

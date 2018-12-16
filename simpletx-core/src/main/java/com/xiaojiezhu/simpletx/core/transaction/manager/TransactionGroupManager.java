@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.core.transaction.manager;
 
+import com.xiaojiezhu.simpletx.common.executor.Future;
 import com.xiaojiezhu.simpletx.common.parameter.MethodParameter;
 import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
 
@@ -20,9 +21,9 @@ public interface TransactionGroupManager {
     TransactionGroupInvokeStatus status();
 
 
-    void notifyCommit();
+    TransactionGroupInvokeFuture notifyCommit();
 
-    void notifyRollback();
+    TransactionGroupInvokeFuture notifyRollback();
 
 
 }

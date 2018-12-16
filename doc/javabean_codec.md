@@ -13,7 +13,13 @@
 
 在这三种提供的序列化方式中，到底该如何选择序列化方式呢?
 
-这里有一个测试类，分别使用这三种序列化方式，进行一百万次的序列化与反序列化，消耗时间如下
+这里有一个测试类，分别使用这三种序列化方式，进行一百万次的序列化与反序列化。
+
+测试代码如下：
+
+[点击查看测试代码](https://github.com/zxjpro/simpletx/blob/master/simpletx-test/src/test/java/com/xiaojiezhu/simpletx/test/coec/ObjectCodecTest.java)
+
+消耗时间如下
 
 ![序列化方式对比](http://wx3.sinaimg.cn/mw690/005ZQTvlly1fy7jse02bzj30tw0kudgo.jpg)
 

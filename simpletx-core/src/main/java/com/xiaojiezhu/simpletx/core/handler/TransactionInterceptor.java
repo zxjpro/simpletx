@@ -1,11 +1,15 @@
 package com.xiaojiezhu.simpletx.core.handler;
 
+import com.xiaojiezhu.simpletx.common.executor.Future;
 import com.xiaojiezhu.simpletx.core.info.TransactionMethodAttribute;
 import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
+import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupInvokeFuture;
+import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupInvokeStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author xiaojie.zhu
@@ -13,10 +17,24 @@ import java.util.List;
  */
 public class TransactionInterceptor extends TransactionAspectSupport {
 
+
+
     public final Logger LOG = LoggerFactory.getLogger(getClass());
+
+
 
     @Override
     protected void runAfterSuccess(TransactionInfo transactionInfo) {
+        TransactionGroupInvokeFuture future = getTransactionGroupManager().notifyCommit();
+
+        try {
+            TransactionGroupInvokeStatus status = future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            //TODO: 事务超时未处理
+        }
+
+
         LOG.trace("simpletx begin commit transaction");
         transactionInfo.getTransactionManager().commit(transactionInfo.getStatus());
         LOG.trace("simpletx complete commit transaction ");
@@ -25,10 +43,25 @@ public class TransactionInterceptor extends TransactionAspectSupport {
     @Override
     protected void runAfterThrowable(TransactionInfo transactionInfo, Throwable throwable) {
         TransactionMethodAttribute methodAttribute = transactionInfo.getMethodAttribute();
-        if(isRollbackAble(methodAttribute.getRollbackForClassName() , throwable)){
-            LOG.trace("simpletx begin rollback transaction");
+
+        if(throwable == null ||
+                isRollbackAble(methodAttribute.getRollbackForClassName() , throwable)){
+
+            TransactionGroupInvokeFuture future = getTransactionGroupManager().notifyRollback();
+
+
+            LOG.trace("simpletx begin rollback local transaction");
             transactionInfo.getTransactionManager().rollback(transactionInfo.getStatus());
-            LOG.trace("simpletx complete rollback transaction");
+            LOG.trace("simpletx complete rollback local transaction");
+
+            try {
+                TransactionGroupInvokeStatus status = future.get(this.transactionTimeout, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                //TODO: 事务超时未处理
+            }
+
+
         }
 
     }

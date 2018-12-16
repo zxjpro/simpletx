@@ -3,6 +3,7 @@ package com.xiaojiezhu.simpletx.core.handler;
 import com.xiaojiezhu.simpletx.common.TransactionGroupFactory;
 import com.xiaojiezhu.simpletx.common.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.common.define.Propagation;
+import com.xiaojiezhu.simpletx.common.executor.ThreadExecutor;
 import com.xiaojiezhu.simpletx.common.parameter.MethodParameter;
 import com.xiaojiezhu.simpletx.core.info.SimpleTransactionMethodAttribute;
 import com.xiaojiezhu.simpletx.core.info.SimpletxTransactionUtil;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author xiaojie.zhu
@@ -38,6 +40,16 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class TransactionAspectSupport implements InitializingBean, BeanFactoryAware {
 
+    /**
+     * the thread wait queue logger over size
+     */
+    private static final int LOGGER_TASK_WAIT_SIZE = 2;
+
+    /**
+     * TODO: 需要提取为参数
+     * 事务的超时时间
+     */
+    protected long transactionTimeout = 10000;
 
     public final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -48,7 +60,12 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
     private TransactionAttributeSource tas;
 
+    /**
+     * manage transaction group
+     */
     private TransactionGroupManager transactionGroupManager;
+
+    private ThreadExecutor threadExecutor;
 
 
     private final ConcurrentReferenceHashMap<Object, PlatformTransactionManager> transactionManagerCache =
@@ -56,9 +73,46 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
     public static final String DEFAULT_TRANSACTION_MANAGER_NAME = "DEFAULT_TRANSACTION_MANAGER";
 
+    public TransactionAspectSupport() {
+    }
+
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
+    }
+
+    /**
+     * init and get the thread executor
+     *
+     * @return
+     */
+    protected final ThreadExecutor getThreadExecutor() {
+        if (this.threadExecutor == null) {
+            synchronized (getClass()) {
+                if (this.threadExecutor == null) {
+                    this.threadExecutor = this.beanFactory.getBean(ThreadExecutor.class);
+                }
+            }
+        }
+
+        return this.threadExecutor;
+    }
+
+    /**
+     * init and get the transaction group manager
+     *
+     * @return
+     */
+    protected final TransactionGroupManager getTransactionGroupManager() {
+        if (this.transactionGroupManager == null) {
+            synchronized (getClass()) {
+                if (this.transactionGroupManager == null) {
+                    this.transactionGroupManager = this.beanFactory.getBean(TransactionGroupManager.class);
+                }
+            }
+        }
+
+        return this.transactionGroupManager;
     }
 
     @Override
@@ -81,21 +135,21 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
             return this.runWithoutTransaction(point);
         }
 
-        if(transactionInfo.isRootTransaction()){
-            MethodParameter methodParameter = new MethodParameter();
-            methodParameter.setArgs(point.getArgs());
-            methodParameter.setBeanName(transactionMethodAttribute.getCurrentBeanName());
-            methodParameter.setClassName(this.getClass().getName());
-            methodParameter.setMethodName(transactionMethodAttribute.getMethod().getName());
+        MethodParameter methodParameter = new MethodParameter();
+        methodParameter.setArgs(point.getArgs());
+        methodParameter.setBeanName(transactionMethodAttribute.getCurrentBeanName());
+        methodParameter.setClassName(transactionMethodAttribute.getTarget().getClass().getName());
+        methodParameter.setMethodName(transactionMethodAttribute.getMethod().getName());
 
-            transactionGroupManager.createGroup(transactionInfo , methodParameter);
+        if (transactionInfo.isRootTransaction()) {
+            transactionGroupManager.createGroup(transactionInfo, methodParameter);
 
             Object result;
             try {
                 result = point.proceed();
 
             } catch (Throwable throwable) {
-                runAfterThrowable(transactionInfo , throwable);
+                runAfterThrowable(transactionInfo, throwable);
                 throw throwable;
 
             } finally {
@@ -105,24 +159,90 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
             runAfterSuccess(transactionInfo);
 
             return result;
-        }else{
+        } else {
             // join transaction
+            transactionGroupManager.joinGroup(transactionInfo, methodParameter);
+
+            Object result = null;
+            Throwable ex = null;
+
+            try {
+                result = point.proceed();
+            } catch (Throwable throwable) {
+                ex = throwable;
+            } finally {
+                SimpletxTransactionUtil.clearThreadResource();
+            }
+
+
+            final Runnable commitRunnable = createCommit(transactionInfo);
+            final Runnable rollbackRunnable = createRollback(transactionInfo);
+
+            ThreadExecutor threadExecutor = getThreadExecutor();
+            threadExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    TransactionInvokeFuture invokeFuture = new TransactionInvokeFuture(commitRunnable, rollbackRunnable,
+                            transactionInfo.getTransactionGroupId(), transactionMethodAttribute.getTimeout());
+
+                    try {
+                        invokeFuture.start();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        //TODO: 等待被中止
+                    } catch (TimeoutException e) {
+                        e.printStackTrace();
+                        //TODO: 等待超时
+                    }
+                }
+            });
+            long waitThreadSize = threadExecutor.getWaitThreadSize();
+            if(waitThreadSize > LOGGER_TASK_WAIT_SIZE){
+                LOG.error("task queue is waiting " + waitThreadSize + " size");
+            }
+
+            if (ex != null) {
+                throw ex;
+            }
+
+            return result;
+
         }
 
 
 
-        return null;
+    }
 
+    protected Runnable createCommit(TransactionInfo transactionInfo) {
+        final Runnable commitRunnable = new Runnable() {
+            @Override
+            public void run() {
+                runAfterSuccess(transactionInfo);
+            }
+        };
+        return commitRunnable;
+    }
+
+    protected Runnable createRollback(TransactionInfo transactionInfo) {
+        final Runnable rollbackRunnable = new Runnable() {
+            @Override
+            public void run() {
+                runAfterThrowable(transactionInfo, null);
+            }
+        };
+        return rollbackRunnable;
     }
 
     /**
      * run target method with success
+     *
      * @param transactionInfo
      */
     protected abstract void runAfterSuccess(TransactionInfo transactionInfo);
 
     /**
      * run target method throw exception
+     *
      * @param transactionInfo
      * @param throwable
      */
@@ -145,14 +265,14 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
         boolean rootTransaction = false;
         String transactionGroupId = SimpletxTransactionUtil.getTransactionGroupId();
-        if(transactionGroupId == null){
+        if (transactionGroupId == null) {
             rootTransaction = true;
             transactionGroupId = TransactionGroupFactory.getInstance().generateGroupId();
 
             SimpletxTransactionUtil.setTransactionGroupId(transactionGroupId);
         }
 
-        TransactionInfo transactionInfo = new TransactionInfo(methodAttribute , tm , txAttr,transactionStatus , rootTransaction , transactionGroupId);
+        TransactionInfo transactionInfo = new TransactionInfo(methodAttribute, tm, txAttr, transactionStatus, rootTransaction, transactionGroupId);
 
         return transactionInfo;
 
@@ -165,22 +285,27 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
     }
 
 
+    /**
+     * find transactionManager , get from cache , if not exist , search from spring and cache
+     * @param qualifier
+     * @return
+     */
     private PlatformTransactionManager determineQualifierTransactionManager(String qualifier) {
-        if(StringUtils.isEmpty(qualifier)){
+        if (StringUtils.isEmpty(qualifier)) {
             qualifier = DEFAULT_TRANSACTION_MANAGER_NAME;
         }
 
         PlatformTransactionManager platformTransactionManager = this.transactionManagerCache.get(qualifier);
         if (platformTransactionManager == null) {
-            if(DEFAULT_TRANSACTION_MANAGER_NAME.equals(qualifier)){
+            if (DEFAULT_TRANSACTION_MANAGER_NAME.equals(qualifier)) {
                 platformTransactionManager = this.beanFactory.getBean(PlatformTransactionManager.class);
-                if(platformTransactionManager == null){
+                if (platformTransactionManager == null) {
                     throw new NullPointerException("not found a " + qualifier + " PlatformTransactionManager bean in spring");
                 }
                 this.transactionManagerCache.put(qualifier, platformTransactionManager);
 
 
-            }else{
+            } else {
                 platformTransactionManager = BeanFactoryAnnotationUtils.qualifiedBeanOfType(this.beanFactory, PlatformTransactionManager.class, qualifier);
                 if (platformTransactionManager == null) {
                     throw new NullPointerException("not found a " + qualifier + " PlatformTransactionManager bean in spring");
