@@ -28,7 +28,7 @@ public class SimpletxAutoConfigure {
 
         String id = UUID.randomUUID().toString().replace("-" , "");
 
-        TransactionInterceptor transactionInterceptor = new TransactionInterceptor(appName,id);
+        TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
         transactionInterceptor.setTransactionAttributeSource(transactionAttributeSource);
         return transactionInterceptor;
     }

@@ -16,37 +16,40 @@ public class MessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-        msg.markReaderIndex();
 
-        int readableBytes = msg.readableBytes();
-        if(!readPacket(msg , readableBytes)){
+        while (readPacket(msg , msg.readableBytes())){
             msg.resetReaderIndex();
-            return;
-        }else{
-            msg.resetReaderIndex();
-            ByteBuf byteBuf = msg.retainedDuplicate();
-            msg.skipBytes(msg.readableBytes());
 
             Message message = new Message();
             Header header = new Header();
-            header.setBodyLength(byteBuf.readMedium());
-            header.setId(byteBuf.readMedium());
-            header.setCode(byteBuf.readInt());
+            header.setBodyLength(msg.readMedium());
+            header.setId(msg.readMedium());
+            header.setCode(msg.readInt());
 
             byte[] body = new byte[header.getBodyLength()];
-            byteBuf.readBytes(body);
+            msg.readBytes(body);
 
             message.setHeader(header);
             message.setBody(body);
 
             out.add(message);
 
-            byteBuf.release();
         }
+
+        msg.resetReaderIndex();
+        return;
+
+
+
     }
 
 
     private boolean readPacket(ByteBuf msg , int readableBytes){
+        if(!msg.isReadable()){
+            return false;
+        }
+        msg.markReaderIndex();
+
         int len = msg.readMedium();
         return readableBytes >= Header.HEADER_BYTE_LENGTH + len;
     }

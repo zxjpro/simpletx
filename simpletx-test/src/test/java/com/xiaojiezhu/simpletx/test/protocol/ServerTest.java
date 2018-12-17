@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.test.protocol;
 
+import com.xiaojiezhu.simpletx.protocol.server.DefaultServer;
 import com.xiaojiezhu.simpletx.protocol.server.Server;
 
 /**
@@ -8,8 +9,9 @@ import com.xiaojiezhu.simpletx.protocol.server.Server;
  */
 public class ServerTest {
 
-    public static void main(String[] args) throws InterruptedException {
-        Server server = new Server(8888);
+    public static void main(String[] args) throws Exception {
+        Server server = new DefaultServer(8888 , null);
+
         server.start();
     }
 }

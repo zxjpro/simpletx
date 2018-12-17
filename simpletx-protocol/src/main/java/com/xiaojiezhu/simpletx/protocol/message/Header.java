@@ -11,6 +11,7 @@ import lombok.Setter;
 @Setter
 public class Header {
 
+
     public static final int HEADER_BYTE_LENGTH = 3 + 3 + 4;
 
 

@@ -9,6 +9,7 @@ import com.xiaojiezhu.simpletx.protocol.message.Message;
 import com.xiaojiezhu.simpletx.test.coec.Person;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 /**
@@ -22,14 +23,27 @@ public class ClientTest {
         pool.setHost("localhost");
         pool.setPort(8888);
         pool.setPassword("hello");
+        pool.setMaxActive(3);
 
-        Connection connection = pool.getConnection();
 
+        for (int i = 0; i < 13; i++) {
+            Connection connection = pool.getConnection();
+            Message message = createMessage(i);
+
+            connection.sendMessage(message);
+
+            connection.close();
+        }
+
+
+    }
+
+    private static Message createMessage(int id) throws UnsupportedEncodingException {
         Person p = new Person();
         p.setParent(Arrays.asList("李四","王五"));
         p.setName("张三");
         p.setHeight(2.22);
-        p.setId(2);
+        p.setId(id);
 
         String s = JSON.toJSONString(p);
 
@@ -42,8 +56,6 @@ public class ClientTest {
         header.setCode(1029);
         message.setHeader(header);
         message.setBody(bytes);
-
-        connection.sendMessage(message);
-
+        return message;
     }
 }
