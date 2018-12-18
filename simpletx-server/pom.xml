@@ -15,8 +15,8 @@
     <dependencies>
 
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
+            <groupId>com.xiaojiezhu.simpletx</groupId>
+            <artifactId>simpletx-protocol</artifactId>
         </dependency>
 
     </dependencies>

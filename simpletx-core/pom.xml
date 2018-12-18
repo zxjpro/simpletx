@@ -20,6 +20,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.xiaojiezhu.simpletx</groupId>
+            <artifactId>simpletx-protocol</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
             <scope>provided</scope>

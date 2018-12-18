@@ -5,7 +5,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author xiaojie.zhu
@@ -23,5 +25,9 @@ public class Person implements Serializable {
     private Double height;
 
     private List<String> parent;
+
+    private Date date;
+
+    private Map<String,String> map;
 
 }

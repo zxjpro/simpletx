@@ -40,7 +40,7 @@ public class ClientTest {
 
     private static Message createMessage(int id) throws UnsupportedEncodingException {
         Person p = new Person();
-        p.setParent(Arrays.asList("李四","王五"));
+        //p.setParent(Arrays.asList("李四","王五"));
         p.setName("张三");
         p.setHeight(2.22);
         p.setId(id);

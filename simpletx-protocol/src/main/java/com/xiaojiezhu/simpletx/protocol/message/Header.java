@@ -1,6 +1,7 @@
 package com.xiaojiezhu.simpletx.protocol.message;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -9,6 +10,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@NoArgsConstructor
 public class Header {
 
 
@@ -31,4 +33,9 @@ public class Header {
      */
     private int code;
 
+    public Header(int id, int code , int bodyLength) {
+        this.bodyLength = bodyLength;
+        this.id = id;
+        this.code = code;
+    }
 }

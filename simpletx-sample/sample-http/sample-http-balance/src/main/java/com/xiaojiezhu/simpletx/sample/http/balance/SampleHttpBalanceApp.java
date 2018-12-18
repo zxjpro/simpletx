@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Import;
  */
 @MapperScan("com.xiaojiezhu.simpletx.sample.common.dao.db")
 @SpringBootApplication
-@EnableAspectJAutoProxy(proxyTargetClass = true)
 @EnableSimpletxTransaction
 public class SampleHttpBalanceApp {
 

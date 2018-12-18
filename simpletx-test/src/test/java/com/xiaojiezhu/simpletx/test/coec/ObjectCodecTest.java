@@ -35,8 +35,9 @@ public class ObjectCodecTest {
         System.out.println(runKryo());
         System.out.println("kyro ... end");
         System.out.println();
-
     }
+
+
 
     private long runJdk() throws IOException, ClassNotFoundException {
         long s = System.currentTimeMillis();
@@ -72,13 +73,6 @@ public class ObjectCodecTest {
 
 
         }
-
-
-
-
-
-
-
     }
 
     private Person createPerson(int id) {
@@ -89,7 +83,7 @@ public class ObjectCodecTest {
         List<String> parent = new LinkedList<>();
         parent.add("李四");
         parent.add("王五");
-        p.setParent(parent);
+        //p.setParent(parent);
 
         return p;
     }

@@ -3,6 +3,7 @@ package com.xiaojiezhu.simpletx.protocol.server;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolHandler;
 import com.xiaojiezhu.simpletx.protocol.message.Message;
+import com.xiaojiezhu.simpletx.protocol.server.event.ConnectionEventListener;
 import com.xiaojiezhu.simpletx.util.StringUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -19,6 +20,8 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Message> {
 
     private final ProtocolDispatcher protocolDispatcher;
     private final ServerContext serverContext;
+
+    private ConnectionEventListener connectionEventListener;
 
 
 
@@ -40,17 +43,40 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Message> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         LOG.info(StringUtils.str("channel[ " , ctx.channel().id() + " ] is connected"));
         this.serverContext.register(ctx.channel());
+
+        if(this.connectionEventListener != null){
+            this.connectionEventListener.onChannelActive(this.serverContext.getConnectionContext(ctx.channel()));
+        }
     }
+
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        LOG.info(StringUtils.str("channel[ " , ctx.channel().id() + " ] is disconnected"));
-        this.serverContext.remove(ctx.channel());
+        try {
+            if(this.connectionEventListener != null){
+                this.connectionEventListener.onChannelDisconnect(this.serverContext.getConnectionContext(ctx.channel()));
+            }
+        } finally {
+
+            LOG.info(StringUtils.str("channel[ " , ctx.channel().id() + " ] is disconnected"));
+            this.serverContext.remove(ctx.channel());
+        }
+
+
+
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LOG.error("channel execute error" , cause);
-        ctx.channel().close();
+
+        if(this.connectionEventListener != null){
+            this.connectionEventListener.onChannelError(this.serverContext.getConnectionContext(ctx.channel()) , cause);
+        }
+    }
+
+
+    public void setConnectionEventListener(ConnectionEventListener connectionEventListener) {
+        this.connectionEventListener = connectionEventListener;
     }
 }

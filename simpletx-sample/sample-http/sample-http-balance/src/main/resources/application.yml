@@ -8,6 +8,8 @@ spring:
     url: "jdbc:mysql://127.0.0.1:3306/market?useUnicode=true&characterEncoding=utf8&useSSL=false"
     username: root
     password: 123456
+  application:
+    name: sample-http-balance
 
 
 mybatis:
@@ -17,3 +19,11 @@ mybatis:
 logging:
   level:
     com.xiaojiezhu: trace
+
+
+simpletx:
+  server:
+    host: 127.0.0.1
+    port: 10290
+    password: hello
+    maxActive: 10

@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.client.spring;
 
+import com.xiaojiezhu.simpletx.client.configuration.SimpletxServerConfiguration;
 import com.xiaojiezhu.simpletx.core.TransactionAspectConfigure;
 import com.xiaojiezhu.simpletx.core.handler.TransactionAspectSupport;
 import com.xiaojiezhu.simpletx.core.handler.TransactionInterceptor;
@@ -16,7 +17,7 @@ import java.util.UUID;
  */
 @Configuration
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-@Import(TransactionAspectConfigure.class)
+@Import({TransactionAspectConfigure.class , SimpletxServerConfiguration.class})
 public class SimpletxAutoConfigure {
 
     @Value("${spring.application.name}")

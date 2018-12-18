@@ -2,6 +2,7 @@ package com.xiaojiezhu.simpletx.protocol.server;
 
 import com.xiaojiezhu.simpletx.protocol.EventLoopGroupUtil;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
+import com.xiaojiezhu.simpletx.protocol.server.event.ConnectionEventListener;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -9,6 +10,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author xiaojie.zhu
@@ -19,11 +22,16 @@ public class DefaultServer implements Server{
     private String host;
     private int port;
 
+    @Getter
     private int workerThreadSize = -1;
 
     private ProtocolDispatcher protocolDispatcher;
 
     private ServerContext serverContext;
+
+    private ConnectionEventListener connectionEventListener;
+
+    private boolean started;
 
     public DefaultServer(int port , ProtocolDispatcher protocolDispatcher) {
         this("0.0.0.0" , port , protocolDispatcher);
@@ -44,6 +52,11 @@ public class DefaultServer implements Server{
 
     @Override
     public void start() throws InterruptedException {
+        if(this.started){
+            throw new RuntimeException("this server is running");
+        }
+        this.started = true;
+
         ServerBootstrap bootstrap = new ServerBootstrap();
         EventLoopGroup bossGroup = EventLoopGroupUtil.create(1);
         EventLoopGroup workerGroup = null;
@@ -62,7 +75,9 @@ public class DefaultServer implements Server{
         bootstrap.option(EpollChannelOption.TCP_CORK, true);
         bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
-        bootstrap.childHandler(new ServerChannelInitializer(this.protocolDispatcher , this.serverContext));
+        ServerChannelInitializer serverChannelInitializer = new ServerChannelInitializer(this.protocolDispatcher, this.serverContext);
+        serverChannelInitializer.setConnectionEventListener(this.connectionEventListener);
+        bootstrap.childHandler(serverChannelInitializer);
 
         try {
             ChannelFuture future = bootstrap.bind(host, port);
@@ -72,4 +87,28 @@ public class DefaultServer implements Server{
             workerGroup.shutdownGracefully();
         }
     }
+
+    @Override
+    public void register(ConnectionEventListener connectionEventListener) {
+        this.check();
+        this.connectionEventListener = connectionEventListener;
+    }
+
+    public void setWorkerThreadSize(int workerThreadSize) {
+        this.check();
+        this.workerThreadSize = workerThreadSize;
+    }
+
+    @Override
+    public boolean isRunning() {
+        return this.started;
+    }
+
+    private void check(){
+        if(isRunning()){
+            throw new RuntimeException("this server is running");
+        }
+    }
+
+
 }
