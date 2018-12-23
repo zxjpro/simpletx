@@ -5,6 +5,8 @@ import com.xiaojiezhu.simpletx.server.config.SimpletxConfig;
 import com.xiaojiezhu.simpletx.server.config.SimpletxConfigLoader;
 import com.xiaojiezhu.simpletx.server.dispatcher.DispatcherHelper;
 import com.xiaojiezhu.simpletx.server.listener.ConnectionStatusListener;
+import com.xiaojiezhu.simpletx.server.transaction.context.DefaultTransactionServerContext;
+import com.xiaojiezhu.simpletx.server.transaction.context.TransactionServerContext;
 import com.xiaojiezhu.simpletx.server.util.Banner;
 import com.xiaojiezhu.simpletx.util.StringUtils;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
@@ -20,20 +22,26 @@ import java.io.FileNotFoundException;
  * @author xiaojie.zhu
  * time 2018/12/18 19:47
  */
-public class SimpletxSerer {
+public class SimpletxServer {
 
     public static void main(String[] args) throws InterruptedException {
         Banner.showBanner();
         initLog4j2();
         SimpletxConfig simpletxConfig = SimpletxConfigLoader.loadConfig(SimpletxConfigLoader.getConfPath());
 
-        DispatcherHelper dispatcherHelper = new DispatcherHelper(simpletxConfig);
+        DefaultServer server = new DefaultServer(simpletxConfig.getHost(), simpletxConfig.getPort());
+        TransactionServerContext serverContext = new DefaultTransactionServerContext();
+        server.setServerContext(serverContext);
 
-        DefaultServer server = new DefaultServer(simpletxConfig.getHost(), simpletxConfig.getPort(), dispatcherHelper.createProtocolDispatcher());
+        DispatcherHelper dispatcherHelper = new DispatcherHelper(serverContext , simpletxConfig);
+
+        server.setProtocolDispatcher(dispatcherHelper.createProtocolDispatcher());
+
+
         server.setWorkerThreadSize(simpletxConfig.getWorkerThreadSize());
         server.register(new ConnectionStatusListener());
 
-        Logger logger = LoggerFactory.getLogger(SimpletxSerer.class);
+        Logger logger = LoggerFactory.getLogger(SimpletxServer.class);
         logger.info(StringUtils.str("simpletx to start , bind:" , simpletxConfig.getHost() + " , port:" + simpletxConfig.getPort()));
 
         server.start();

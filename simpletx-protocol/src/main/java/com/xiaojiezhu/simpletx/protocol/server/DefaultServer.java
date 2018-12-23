@@ -29,23 +29,23 @@ public class DefaultServer implements Server{
     @Getter
     private int workerThreadSize = -1;
 
+    @Setter
     private ProtocolDispatcher protocolDispatcher;
 
+    @Setter
     private ServerContext serverContext;
 
     private ConnectionEventListener connectionEventListener;
 
     private boolean started;
 
-    public DefaultServer(int port , ProtocolDispatcher protocolDispatcher) {
-        this("0.0.0.0" , port , protocolDispatcher);
+    public DefaultServer(int port) {
+        this("0.0.0.0" , port);
     }
 
-    public DefaultServer(String host, int port , ProtocolDispatcher protocolDispatcher) {
+    public DefaultServer(String host, int port ) {
         this.host = host;
         this.port = port;
-        this.protocolDispatcher = protocolDispatcher;
-
         this.serverContext = new DefaultServerContext();
     }
 

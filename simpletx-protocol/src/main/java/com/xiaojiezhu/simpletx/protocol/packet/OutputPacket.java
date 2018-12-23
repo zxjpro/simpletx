@@ -1,6 +1,5 @@
 package com.xiaojiezhu.simpletx.protocol.packet;
 
-import io.netty.buffer.ByteBuf;
 
 /**
  * @author xiaojie.zhu
@@ -8,5 +7,7 @@ import io.netty.buffer.ByteBuf;
  */
 public interface OutputPacket extends Packet {
 
-    void write(ByteBuf byteBuf);
+
+    void write(ByteBuffer byteBuf);
+
 }

@@ -1,6 +1,8 @@
 package com.xiaojiezhu.simpletx.protocol.client;
 
 import com.xiaojiezhu.simpletx.protocol.message.Message;
+import com.xiaojiezhu.simpletx.protocol.message.MessageCreator;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.FixedChannelPool;
 import lombok.AllArgsConstructor;
@@ -25,6 +27,14 @@ class ReuseConnection implements Connection {
     @Override
     public void sendMessage(Message message) {
         channel.writeAndFlush(message);
+    }
+
+    @Override
+    public void sendMessage(MessageCreator messageCreator) {
+        ByteBuf buffer = channel.alloc().buffer();
+        Message message = messageCreator.create(buffer);
+
+        this.sendMessage(message);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.xiaojiezhu.simpletx.server.packet.input;
 
+import com.xiaojiezhu.simpletx.protocol.packet.ByteBuffer;
 import com.xiaojiezhu.simpletx.protocol.packet.InputPacket;
-import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 
 /**
@@ -11,14 +11,18 @@ import lombok.Getter;
 public class AuthorizationInputPacket implements InputPacket {
 
     @Getter
+    private String appName;
+    @Getter
+    private String appid;
+
+    @Getter
     private String password;
 
     @Override
-    public void read(ByteBuf byteBuf) {
-        byte[] buf = new byte[byteBuf.readableBytes()];
-        byteBuf.readBytes(buf);
-
-        this.password = new String(buf);
+    public void read(ByteBuffer byteBuf) {
+        this.appName = byteBuf.readStringEndZero();
+        this.appid = byteBuf.readStringEndZero();
+        this.password = new String(byteBuf.readBytesToLast());
     }
 
 }

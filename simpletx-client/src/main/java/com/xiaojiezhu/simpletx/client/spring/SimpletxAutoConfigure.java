@@ -20,8 +20,7 @@ import java.util.UUID;
 @Import({TransactionAspectConfigure.class , SimpletxServerConfiguration.class})
 public class SimpletxAutoConfigure {
 
-    @Value("${spring.application.name}")
-    private String appName;
+
 
     @Bean
     @ConditionalOnMissingBean(TransactionAspectSupport.class)

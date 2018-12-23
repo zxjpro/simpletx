@@ -142,7 +142,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
         methodParameter.setMethodName(transactionMethodAttribute.getMethod().getName());
 
         if (transactionInfo.isRootTransaction()) {
-            getTransactionGroupManager().createGroup(transactionInfo, methodParameter);
+            getTransactionGroupManager().createGroup(SimpletxTransactionUtil.getTransactionGroupId() , transactionInfo, methodParameter);
 
             Object result;
             try {
@@ -161,7 +161,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
             return result;
         } else {
             // join transaction
-            getTransactionGroupManager().joinGroup(transactionInfo, methodParameter);
+            getTransactionGroupManager().joinGroup(SimpletxTransactionUtil.getTransactionGroupId() , transactionInfo, methodParameter);
 
             Object result = null;
             Throwable ex = null;
@@ -263,6 +263,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
         TransactionStatus transactionStatus = tm.getTransaction(txAttr);
 
+        //TODO: 其它请求进入时，还没有把transactionGroupId加入到线程变量中
         boolean rootTransaction = false;
         String transactionGroupId = SimpletxTransactionUtil.getTransactionGroupId();
         if (transactionGroupId == null) {
@@ -361,6 +362,8 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
         attribute.setTransactionManagerName(annotation.transactionManager());
         attribute.setPropagation(annotation.propagation());
         attribute.setCurrentBeanName(annotation.currentBeanName());
+        //TODO : 这里指定，出现异常，是否补偿，还没有抽成配置文件
+        attribute.setCompensate(true);
 
         if (!Arrays.isEmpty(annotation.rollbackFor()) || !Arrays.isEmpty(annotation.rollbackForClassName())) {
             List<String> rollbackFor = new ArrayList<>(annotation.rollbackFor().length + annotation.rollbackForClassName().length);

@@ -19,6 +19,11 @@
             <artifactId>simpletx-protocol</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.xiaojiezhu.simpletx</groupId>
+            <artifactId>simpletx-common</artifactId>
+        </dependency>
+
 
         <!-- 日志包...开始 -->
         <!-- log配置：Log4j2 + Slf4j -->

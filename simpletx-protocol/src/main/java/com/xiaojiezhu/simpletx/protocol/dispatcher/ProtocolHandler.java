@@ -11,8 +11,10 @@ public interface ProtocolHandler<T extends Packet> {
 
     /**
      * handler protocol
+     * @param msgId msg id
+     * @param code protocol code
      * @param connectionContext connection context
      * @param content protocol body
      */
-    void handler(ConnectionContext connectionContext , T content);
+    void handler(ConnectionContext connectionContext , int msgId , int code , T content);
 }

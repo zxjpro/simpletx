@@ -1,7 +1,7 @@
 package com.xiaojiezhu.simpletx.client.net.packet.input;
 
+import com.xiaojiezhu.simpletx.protocol.packet.ByteBuffer;
 import com.xiaojiezhu.simpletx.protocol.packet.InputPacket;
-import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 
 /**
@@ -16,11 +16,8 @@ public class LoginInputPacket implements InputPacket {
     private String authKey;
 
     @Override
-    public void read(ByteBuf buffer) {
+    public void read(ByteBuffer buffer) {
         this.connectionId = buffer.readMedium();
-        byte[] buf = new byte[buffer.readableBytes()];
-        buffer.readBytes(buf);
-
-        this.authKey = new String(buf);
+        this.authKey = new String(buffer.readBytesToLast());
     }
 }

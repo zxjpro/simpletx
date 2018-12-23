@@ -1,7 +1,10 @@
 package com.xiaojiezhu.simpletx.protocol.context;
 
+import com.xiaojiezhu.simpletx.protocol.client.Connection;
 import com.xiaojiezhu.simpletx.protocol.message.Message;
+import com.xiaojiezhu.simpletx.protocol.message.MessageCreator;
 import com.xiaojiezhu.simpletx.util.Constant;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 
 import java.net.InetSocketAddress;
@@ -25,6 +28,11 @@ public class DefaultConnectionContext implements ConnectionContext {
     private String remoteIpAddress;
 
     private boolean authorization;
+
+    /**
+     * channel id
+     */
+    private int id = -1;
 
     public DefaultConnectionContext(Channel channel) {
         this.channel = channel;
@@ -59,6 +67,13 @@ public class DefaultConnectionContext implements ConnectionContext {
     }
 
     @Override
+    public void sendMessage(MessageCreator messageCreator) {
+        ByteBuf buffer = this.channel.alloc().buffer();
+        Message message = messageCreator.create(buffer);
+        this.sendMessage(message);
+    }
+
+    @Override
     public String remoteIpAddress() {
         return this.remoteIpAddress;
     }
@@ -80,6 +95,23 @@ public class DefaultConnectionContext implements ConnectionContext {
                 return false;
             }
         }
+    }
+
+    @Override
+    public int getId() {
+        if(this.id == -1){
+            Object id = this.get(Constant.Server.ConnectionSession.ID);
+            if(id == null){
+                throw new RuntimeException("id not init");
+            }
+            this.id = Integer.parseInt(String.valueOf(id));
+        }
+        return this.id;
+    }
+
+    @Override
+    public boolean isActive() {
+        return this.channel.isActive();
     }
 
 

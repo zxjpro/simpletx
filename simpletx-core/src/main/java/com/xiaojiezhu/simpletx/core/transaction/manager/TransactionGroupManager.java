@@ -10,9 +10,9 @@ import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
  */
 public interface TransactionGroupManager {
 
-    void createGroup(TransactionInfo transactionInfo, MethodParameter methodParameter);
+    void createGroup(String transactionGroupId , TransactionInfo transactionInfo, MethodParameter methodParameter);
 
-    void joinGroup(TransactionInfo transactionInfo, MethodParameter methodParameter);
+    void joinGroup(String transactionGroupId , TransactionInfo transactionInfo, MethodParameter methodParameter);
 
     /**
      * get the transaction group invoke status
@@ -21,9 +21,9 @@ public interface TransactionGroupManager {
     TransactionGroupInvokeStatus status();
 
 
-    TransactionGroupInvokeFuture notifyCommit();
+    TransactionGroupInvokeFuture notifyCommit(String transactionGroupId);
 
-    TransactionGroupInvokeFuture notifyRollback();
+    TransactionGroupInvokeFuture notifyRollback(String transactionGroupId);
 
 
 }

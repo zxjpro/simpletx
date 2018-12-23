@@ -6,6 +6,12 @@ package com.xiaojiezhu.simpletx.util;
  */
 public class Constant {
 
+    /**
+     * this info can not delete , it will be system error
+     */
+    public static final String AUTHOR = "simpletx.author";
+    public static final String AUTHOR_INFO = "zhu.xiaojie";
+
 
     //============================Server start================================
     public static class Server {
@@ -15,6 +21,18 @@ public class Constant {
              * send auth key
              */
             public static final int CODE_AUTH_KEY = 100;
+
+            public static final int CODE_OK = 101;
+            public static final int CODE_ERROR = 102;
+
+            /**
+             * simpletx-server notify all of the transaction group to commit transaction
+             */
+            public static final int CODE_NOTIFY_COMMIT = 231;
+            /**
+             * simpletx-server notify all of the transaction group to rollback transaction
+             */
+            public static final int CODE_NOTIFY_ROLLBACK = 231;
         }
 
 
@@ -28,7 +46,9 @@ public class Constant {
             /**
              * connection id
              */
-            public static final String ID = "_id";
+            public static final String ID = Client.ConnectionSession.ID;
+            public static final String APP_NAME = "_appName";
+            public static final String APPID = "_appid";
         }
     }
 
@@ -50,6 +70,18 @@ public class Constant {
              * create group
              */
             public static final int CODE_CREATE_GROUP = 231;
+            /**
+             * join group
+             */
+            public static final int CODE_JOIN_GROUP = 232;
+            /**
+             * client send simpletx-server to commit
+             */
+            public static final int CODE_COMMIT = 233;
+            /**
+             * client send simpletx-server to rollback
+             */
+            public static final int CODE_ROLLBACK = 234;
         }
 
 

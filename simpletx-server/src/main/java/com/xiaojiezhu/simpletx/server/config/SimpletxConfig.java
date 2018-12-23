@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.server.config;
 
+import com.xiaojiezhu.simpletx.util.Constant;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SimpletxConfig {
+
+    public SimpletxConfig() {
+        System.setProperty(Constant.AUTHOR , Constant.AUTHOR_INFO);
+    }
 
     private String host = "0.0.0.0";
 

@@ -34,6 +34,11 @@
             <artifactId>simpletx-client</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.xiaojiezhu.simpletx</groupId>
+            <artifactId>simpletx-server</artifactId>
+        </dependency>
+
     </dependencies>
 
 

@@ -46,11 +46,20 @@ public class DefaultConnectionPool implements ConnectionPool {
     @Getter
     private int maxActive = 10;
 
+    @Getter
+    @Setter
+    private String appName;
+
+    @Getter
+    @Setter
+    private String appId;
+
     private FixedChannelPool pool;
 
     private SimpleChannelPoolHandler poolHandler;
 
-    private ConnectionContextHolder connectionContextHolder;
+    @Getter
+    private final SimpletxContext simpletxContext = new DefaultSimpletxContext();
 
     @Override
     public Connection getConnection() throws IOException {
@@ -90,8 +99,6 @@ public class DefaultConnectionPool implements ConnectionPool {
     private void init(){
         this.check();
 
-        this.connectionContextHolder = new DefaultConnectionContextHolder();
-
         Bootstrap bootstrap = new Bootstrap();
         EventLoopGroup group = EventLoopGroupUtil.create();
         bootstrap.group(group);
@@ -100,7 +107,7 @@ public class DefaultConnectionPool implements ConnectionPool {
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.remoteAddress(this.host , this.port);
 
-        this.poolHandler = new SimpleChannelPoolHandler(this.protocolDispatcher , this.connectionContextHolder);
+        this.poolHandler = new SimpleChannelPoolHandler(this.protocolDispatcher , this.simpletxContext);
         pool = new FixedChannelPool(bootstrap , poolHandler , this.maxActive);
 
     }

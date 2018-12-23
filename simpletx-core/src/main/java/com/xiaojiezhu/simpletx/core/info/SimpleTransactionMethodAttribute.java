@@ -26,6 +26,10 @@ public class SimpleTransactionMethodAttribute implements TransactionMethodAttrib
     private Propagation propagation;
     private List<String> rollbackForClassName;
     private String currentBeanName;
+    /**
+     * 如果发生异常，是否需要补偿
+     */
+    private boolean compensate;
 
 
     @Override
@@ -56,5 +60,10 @@ public class SimpleTransactionMethodAttribute implements TransactionMethodAttrib
     @Override
     public List<String> getRollbackForClassName() {
         return this.rollbackForClassName;
+    }
+
+    @Override
+    public boolean isCompensate() {
+        return this.compensate;
     }
 }

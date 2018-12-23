@@ -160,6 +160,12 @@
                 <artifactId>simpletx-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.xiaojiezhu.simpletx</groupId>
+                <artifactId>simpletx-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!-- project self ... start -->
 
 

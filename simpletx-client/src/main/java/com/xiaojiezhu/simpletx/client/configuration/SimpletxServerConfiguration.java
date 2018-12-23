@@ -2,13 +2,17 @@ package com.xiaojiezhu.simpletx.client.configuration;
 
 import com.xiaojiezhu.simpletx.client.util.DispatcherHelper;
 import com.xiaojiezhu.simpletx.common.codec.*;
-import com.xiaojiezhu.simpletx.core.transaction.manager.SocketTransactionGroupManager;
+import com.xiaojiezhu.simpletx.core.net.SocketTransactionGroupManager;
 import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupManager;
 import com.xiaojiezhu.simpletx.protocol.client.ConnectionPool;
 import com.xiaojiezhu.simpletx.protocol.client.DefaultConnectionPool;
+import com.xiaojiezhu.simpletx.protocol.client.SimpletxContext;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+
+import java.util.UUID;
 
 /**
  * @author xiaojie.zhu
@@ -16,17 +20,27 @@ import org.springframework.context.annotation.Bean;
  */
 public class SimpletxServerConfiguration {
 
+    @Value("${spring.application.name}")
+    private String appName;
+
 
     @Bean
     @ConditionalOnMissingBean(ConnectionPool.class)
     public ConnectionPool connectionPool(SimpletxServerProperties properties) {
+        String appid = UUID.randomUUID().toString().replace("-", "");
+
         DefaultConnectionPool connectionPool = new DefaultConnectionPool();
         connectionPool.setHost(properties.getHost());
         connectionPool.setPort(properties.getPort());
         connectionPool.setPassword(properties.getPassword());
         connectionPool.setMaxActive(properties.getMaxActive());
 
-        DispatcherHelper dispatcherHelper = new DispatcherHelper(properties);
+        connectionPool.setAppName(appName);
+        connectionPool.setAppId(appid);
+
+        SimpletxContext simpletxContext = connectionPool.getSimpletxContext();
+
+        DispatcherHelper dispatcherHelper = new DispatcherHelper(this.appName ,appid, simpletxContext, properties);
 
         ProtocolDispatcher protocolDispatcher = dispatcherHelper.createProtocolDispatcher();
 

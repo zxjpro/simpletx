@@ -1,6 +1,7 @@
 package com.xiaojiezhu.simpletx.core.handler;
 
 import com.xiaojiezhu.simpletx.common.executor.Future;
+import com.xiaojiezhu.simpletx.core.info.SimpletxTransactionUtil;
 import com.xiaojiezhu.simpletx.core.info.TransactionMethodAttribute;
 import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
 import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupInvokeFuture;
@@ -25,7 +26,7 @@ public class TransactionInterceptor extends TransactionAspectSupport {
 
     @Override
     protected void runAfterSuccess(TransactionInfo transactionInfo) {
-        TransactionGroupInvokeFuture future = getTransactionGroupManager().notifyCommit();
+        TransactionGroupInvokeFuture future = getTransactionGroupManager().notifyCommit(SimpletxTransactionUtil.getTransactionGroupId());
 
         try {
             TransactionGroupInvokeStatus status = future.get();
@@ -47,7 +48,7 @@ public class TransactionInterceptor extends TransactionAspectSupport {
         if(throwable == null ||
                 isRollbackAble(methodAttribute.getRollbackForClassName() , throwable)){
 
-            TransactionGroupInvokeFuture future = getTransactionGroupManager().notifyRollback();
+            TransactionGroupInvokeFuture future = getTransactionGroupManager().notifyRollback(SimpletxTransactionUtil.getTransactionGroupId());
 
 
             LOG.trace("simpletx begin rollback local transaction");

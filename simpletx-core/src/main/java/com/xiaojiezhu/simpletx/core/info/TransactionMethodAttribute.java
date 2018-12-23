@@ -42,4 +42,11 @@ public interface TransactionMethodAttribute {
      */
     String getCurrentBeanName();
 
+
+    /**
+     * 是否需要补偿
+     * @return
+     */
+    boolean isCompensate();
+
 }

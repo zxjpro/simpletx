@@ -13,6 +13,7 @@ import lombok.ToString;
 @ToString
 public class MethodParameter {
 
+
     private String className;
 
     private String beanName;

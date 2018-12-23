@@ -4,8 +4,11 @@ import com.xiaojiezhu.simpletx.protocol.context.ConnectionContext;
 import com.xiaojiezhu.simpletx.protocol.context.InputPacketManager;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolHandler;
-import com.xiaojiezhu.simpletx.protocol.exception.SyntaxRuntimeException;
+import com.xiaojiezhu.simpletx.protocol.message.Header;
 import com.xiaojiezhu.simpletx.protocol.message.Message;
+import com.xiaojiezhu.simpletx.protocol.message.MessageCreator;
+import com.xiaojiezhu.simpletx.protocol.message.MessageUtil;
+import com.xiaojiezhu.simpletx.protocol.packet.ByteBuffer;
 import com.xiaojiezhu.simpletx.protocol.packet.InputPacket;
 import com.xiaojiezhu.simpletx.protocol.server.event.ConnectionEventListener;
 import com.xiaojiezhu.simpletx.util.StringUtils;
@@ -15,10 +18,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author xiaojie.zhu
@@ -62,14 +61,27 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Message> {
         InputPacket inputPacket = inputPacketClass.newInstance();
 
 
-        ByteBuf byteBuf = Unpooled.wrappedBuffer(msg.getBody());
+        ByteBuffer byteBuf = new ByteBuffer(Unpooled.wrappedBuffer(msg.getBody()));
         try {
             inputPacket.read(byteBuf);
         } finally {
             byteBuf.release();
         }
 
-        dispatcher.handler(connectionContext , inputPacket);
+        Header header = msg.getHeader();
+
+        try {
+            dispatcher.handler(connectionContext , header.getId() , header.getCode() , inputPacket);
+        } catch (Throwable e) {
+            connectionContext.sendMessage(new MessageCreator() {
+                @Override
+                public Message create(ByteBuf buffer) {
+                    return MessageUtil.createErrorMessage(header.getId() , e.getMessage() , buffer);
+                }
+            });
+
+            LOG.error(dispatcher.getClass() + " handler error" , e);
+        }
     }
 
 

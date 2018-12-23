@@ -1,6 +1,7 @@
 package com.xiaojiezhu.simpletx.protocol.client;
 
 import com.xiaojiezhu.simpletx.protocol.message.Message;
+import com.xiaojiezhu.simpletx.protocol.message.MessageCreator;
 
 import java.io.Closeable;
 
@@ -13,6 +14,8 @@ public interface Connection extends Closeable {
     boolean isActive();
 
     void sendMessage(Message message);
+
+    void sendMessage(MessageCreator messageCreator);
 
 
 }

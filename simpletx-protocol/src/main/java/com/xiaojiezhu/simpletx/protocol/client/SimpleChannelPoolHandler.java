@@ -27,13 +27,13 @@ public class SimpleChannelPoolHandler implements ChannelPoolHandler {
     private final AtomicLong COUNT = new AtomicLong(0);
 
     private final ProtocolDispatcher protocolDispatcher;
-    private final ConnectionContextHolder connectionContextHolder;
+    private final SimpletxContext simpletxContext;
 
     private final InputPacketManager inputPacketManager = new SimpleInputPacketManager();
 
-    public SimpleChannelPoolHandler(ProtocolDispatcher protocolDispatcher , ConnectionContextHolder connectionContextHolder) {
+    public SimpleChannelPoolHandler(ProtocolDispatcher protocolDispatcher , SimpletxContext simpletxContext) {
         this.protocolDispatcher = protocolDispatcher;
-        this.connectionContextHolder = connectionContextHolder;
+        this.simpletxContext = simpletxContext;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class SimpleChannelPoolHandler implements ChannelPoolHandler {
 
         pipeline.addLast(new MessageDecoder());
 
-        pipeline.addLast(new ClientChannelHandler(this.protocolDispatcher , this.connectionContextHolder , this.inputPacketManager));
+        pipeline.addLast(new ClientChannelHandler(this.protocolDispatcher , this.simpletxContext , this.inputPacketManager));
 
         pipeline.addLast(new MessageEncoder());
 

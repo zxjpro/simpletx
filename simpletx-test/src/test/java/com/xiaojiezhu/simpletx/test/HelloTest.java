@@ -54,7 +54,7 @@ public class HelloTest {
     public void test3(){
         class HelloHandler extends Date implements ProtocolHandler<LoginInputPacket>{
             @Override
-            public void handler(ConnectionContext connectionContext, LoginInputPacket content) {
+            public void handler(ConnectionContext connectionContext,int msgId , int code , LoginInputPacket content) {
 
             }
         }

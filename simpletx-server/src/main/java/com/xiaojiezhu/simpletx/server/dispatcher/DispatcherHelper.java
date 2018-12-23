@@ -2,7 +2,12 @@ package com.xiaojiezhu.simpletx.server.dispatcher;
 
 import com.xiaojiezhu.simpletx.protocol.dispatcher.DefaultProtocolDispatcher;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
+import com.xiaojiezhu.simpletx.protocol.server.ServerContext;
 import com.xiaojiezhu.simpletx.server.config.SimpletxConfig;
+import com.xiaojiezhu.simpletx.server.dispatcher.handler.AuthorizationHandler;
+import com.xiaojiezhu.simpletx.server.dispatcher.handler.CommitRollbackHandler;
+import com.xiaojiezhu.simpletx.server.dispatcher.handler.CreateJoinGroupHandler;
+import com.xiaojiezhu.simpletx.server.transaction.context.TransactionServerContext;
 import com.xiaojiezhu.simpletx.util.Constant;
 import lombok.AllArgsConstructor;
 
@@ -13,6 +18,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class DispatcherHelper {
 
+    private final TransactionServerContext serverContext;
     private final SimpletxConfig simpletxConfig;
 
 
@@ -22,6 +28,11 @@ public class DispatcherHelper {
         //authorization
         protocolDispatcher.register(Constant.Client.ProtocolCode.CODE_LOGIN, new AuthorizationHandler(simpletxConfig.getPassword()));
 
+        protocolDispatcher.register(Constant.Client.ProtocolCode.CODE_CREATE_GROUP , new CreateJoinGroupHandler(serverContext));
+        protocolDispatcher.register(Constant.Client.ProtocolCode.CODE_JOIN_GROUP , new CreateJoinGroupHandler(serverContext));
+
+        protocolDispatcher.register(Constant.Client.ProtocolCode.CODE_COMMIT , new CommitRollbackHandler(serverContext));
+        protocolDispatcher.register(Constant.Client.ProtocolCode.CODE_ROLLBACK , new CommitRollbackHandler(serverContext));
         return protocolDispatcher;
     }
 }
