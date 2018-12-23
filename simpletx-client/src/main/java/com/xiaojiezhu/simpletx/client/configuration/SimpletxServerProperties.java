@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.io.Serializable;
+
 /**
  * @author xiaojie.zhu
  * time 2018/12/18 21:59
@@ -11,7 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @Getter
 @ConfigurationProperties(prefix = "simpletx.server")
-public class SimpletxServerProperties {
+public class SimpletxServerProperties implements Serializable {
 
     private String host;
 
@@ -19,7 +21,18 @@ public class SimpletxServerProperties {
 
     private String password;
 
+    /**
+     * connect simpletx server max active
+     */
     private int maxActive;
+
+    /**
+     * Serializable type \n
+     * jdk use default jdk serializable \n
+     * json use fastjson serializable \n
+     * kryo use kryo serializable \n
+     */
+    private String codec = "kryo";
 
 
 }

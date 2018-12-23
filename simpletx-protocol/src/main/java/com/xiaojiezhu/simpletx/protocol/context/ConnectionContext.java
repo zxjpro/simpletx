@@ -1,5 +1,6 @@
-package com.xiaojiezhu.simpletx.protocol.server;
+package com.xiaojiezhu.simpletx.protocol.context;
 
+import com.xiaojiezhu.simpletx.protocol.message.Message;
 import io.netty.channel.Channel;
 
 /**
@@ -26,6 +27,15 @@ public interface ConnectionContext {
      * @param value
      */
     void set(Object key ,Object value);
+
+    void sendMessage(Message message);
+
+    String remoteIpAddress();
+
+    void close();
+
+    boolean isAuthorization();
+
 
 
 

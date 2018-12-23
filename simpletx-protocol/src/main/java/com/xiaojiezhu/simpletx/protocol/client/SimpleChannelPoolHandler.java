@@ -2,6 +2,10 @@ package com.xiaojiezhu.simpletx.protocol.client;
 
 import com.xiaojiezhu.simpletx.protocol.codec.MessageDecoder;
 import com.xiaojiezhu.simpletx.protocol.codec.MessageEncoder;
+import com.xiaojiezhu.simpletx.protocol.context.ConnectionContextHolder;
+import com.xiaojiezhu.simpletx.protocol.context.InputPacketManager;
+import com.xiaojiezhu.simpletx.protocol.context.SimpleInputPacketManager;
+import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
 import com.xiaojiezhu.simpletx.util.StringUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
@@ -21,6 +25,16 @@ public class SimpleChannelPoolHandler implements ChannelPoolHandler {
     public final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private final AtomicLong COUNT = new AtomicLong(0);
+
+    private final ProtocolDispatcher protocolDispatcher;
+    private final ConnectionContextHolder connectionContextHolder;
+
+    private final InputPacketManager inputPacketManager = new SimpleInputPacketManager();
+
+    public SimpleChannelPoolHandler(ProtocolDispatcher protocolDispatcher , ConnectionContextHolder connectionContextHolder) {
+        this.protocolDispatcher = protocolDispatcher;
+        this.connectionContextHolder = connectionContextHolder;
+    }
 
     @Override
     public void channelReleased(Channel channel) throws Exception {
@@ -45,7 +59,7 @@ public class SimpleChannelPoolHandler implements ChannelPoolHandler {
 
         pipeline.addLast(new MessageDecoder());
 
-        pipeline.addLast(new ClientChannelHandler());
+        pipeline.addLast(new ClientChannelHandler(this.protocolDispatcher , this.connectionContextHolder , this.inputPacketManager));
 
         pipeline.addLast(new MessageEncoder());
 

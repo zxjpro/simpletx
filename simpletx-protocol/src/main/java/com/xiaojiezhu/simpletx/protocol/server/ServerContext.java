@@ -1,19 +1,14 @@
 package com.xiaojiezhu.simpletx.protocol.server;
 
-import io.netty.channel.Channel;
+import com.xiaojiezhu.simpletx.protocol.context.ConnectionContextHolder;
+
+import java.nio.channels.Channel;
 
 /**
  * @author xiaojie.zhu
- * time 2018/12/17 23:18
+ * time 2018/12/22 10:51
  */
-public interface ServerContext {
+public interface ServerContext extends ConnectionContextHolder {
 
-    void register(Channel channel);
-
-
-    void remove(Channel channel);
-
-    int connectionSize();
-
-    ConnectionContext getConnectionContext(Channel channel);
+    void disconnect(int id);
 }

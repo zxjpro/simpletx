@@ -18,13 +18,24 @@ import java.io.IOException;
  */
 public class KryoObjectCodec extends AbstractObjectCodec {
 
-//    private static Kryo kryo = new Kryo();
+
+
+    private final ThreadLocal<Kryo> kryoLocal = new ThreadLocal<Kryo>() {
+        @Override
+        protected Kryo initialValue() {
+            Kryo kryo = new Kryo();
+            return kryo;
+        }
+    };
+    private final ThreadLocal<Output> outputLocal = new ThreadLocal<Output>();
+    private final ThreadLocal<Input> inputLocal = new ThreadLocal<Input>();
+
+
 
 
 
     @Override
     public byte[] encode(Object object) throws IOException {
-        Kryo kryo = new Kryo();
 
         ByteArrayOutputStream bout = null;
         Output out = null;
@@ -33,11 +44,11 @@ public class KryoObjectCodec extends AbstractObjectCodec {
 
         try {
             bout = new ByteArrayOutputStream();
-            out = new Output(bout);
-            kryo.writeClassAndObject(out , object);
+            out = getOutput(bout);
+            kryoLocal.get().writeClassAndObject(out , object);
+            out.flush();
         } finally {
-            IOUtils.close(out);
-            IOUtils.close(bout);
+//            IOUtils.close(out);
         }
 
         bytes = bout.toByteArray();
@@ -48,13 +59,40 @@ public class KryoObjectCodec extends AbstractObjectCodec {
 
     @Override
     public <T> T decode(byte[] bytes, Class<T> t) throws IOException, ClassNotFoundException {
-        Kryo kryo = new Kryo();
 
         ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
-        Input input = new Input(bin);
+        Input input = getInput(bin);
 
         T t1 = null;
-        t1 = (T) kryo.readClassAndObject(input);
+        t1 = (T) kryoLocal.get().readClassAndObject(input);
         return t1;
+    }
+
+    private Output getOutput(ByteArrayOutputStream bout){
+        Output output = outputLocal.get();
+        if(output == null){
+            output = new Output(4096 , 4096);
+            outputLocal.set(output);
+        }
+        if(bout != null){
+            output.setOutputStream(bout);
+        }
+        return output;
+
+    }
+
+    private Input getInput(ByteArrayInputStream bin){
+        Input input = inputLocal.get();
+        if(input == null){
+            input = new Input(4096);
+            inputLocal.set(input);
+        }
+
+        if(bin != null){
+            input.setInputStream(bin);
+        }
+
+        return input;
+
     }
 }

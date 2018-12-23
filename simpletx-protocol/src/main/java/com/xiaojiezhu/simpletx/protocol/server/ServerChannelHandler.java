@@ -1,14 +1,24 @@
 package com.xiaojiezhu.simpletx.protocol.server;
 
+import com.xiaojiezhu.simpletx.protocol.context.ConnectionContext;
+import com.xiaojiezhu.simpletx.protocol.context.InputPacketManager;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolHandler;
+import com.xiaojiezhu.simpletx.protocol.exception.SyntaxRuntimeException;
 import com.xiaojiezhu.simpletx.protocol.message.Message;
+import com.xiaojiezhu.simpletx.protocol.packet.InputPacket;
 import com.xiaojiezhu.simpletx.protocol.server.event.ConnectionEventListener;
 import com.xiaojiezhu.simpletx.util.StringUtils;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author xiaojie.zhu
@@ -23,11 +33,16 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Message> {
 
     private ConnectionEventListener connectionEventListener;
 
+    private final InputPacketManager inputPacketManager;
 
 
-    public ServerChannelHandler(ProtocolDispatcher protocolDispatcher , ServerContext serverContext) {
+    private boolean first = true;
+
+
+    public ServerChannelHandler(ProtocolDispatcher protocolDispatcher , ServerContext serverContext , InputPacketManager inputPacketManager) {
         this.protocolDispatcher = protocolDispatcher;
         this.serverContext = serverContext;
+        this.inputPacketManager = inputPacketManager;
     }
 
     @Override
@@ -35,7 +50,26 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Message> {
 
         ProtocolHandler dispatcher = this.protocolDispatcher.dispatcher(msg.getHeader().getCode());
 
-        dispatcher.handler(serverContext.getConnectionContext(ctx.channel()),msg.getBody());
+        ConnectionContext connectionContext = serverContext.getConnectionContext(ctx.channel());
+        if(!first){
+            if(!connectionContext.isAuthorization()){
+                connectionContext.close();
+                throw new RuntimeException("not authorization exception");
+            }
+        }
+
+        Class<? extends InputPacket> inputPacketClass = this.inputPacketManager.get(dispatcher.getClass());
+        InputPacket inputPacket = inputPacketClass.newInstance();
+
+
+        ByteBuf byteBuf = Unpooled.wrappedBuffer(msg.getBody());
+        try {
+            inputPacket.read(byteBuf);
+        } finally {
+            byteBuf.release();
+        }
+
+        dispatcher.handler(connectionContext , inputPacket);
     }
 
 

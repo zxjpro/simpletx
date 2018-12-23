@@ -10,7 +10,13 @@ public class IOUtils {
         BufferedReader reader = new BufferedReader(new InputStreamReader(in , charset));
         StringBuffer sb = new StringBuffer();
         String line;
+        boolean first = true;
         while ((line = reader.readLine()) != null){
+            if(first){
+                first = false;
+            }else{
+                sb.append(System.lineSeparator());
+            }
             sb.append(line);
         }
 

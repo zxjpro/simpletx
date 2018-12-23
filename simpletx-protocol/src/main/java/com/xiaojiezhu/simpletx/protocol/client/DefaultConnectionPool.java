@@ -1,6 +1,9 @@
 package com.xiaojiezhu.simpletx.protocol.client;
 
 import com.xiaojiezhu.simpletx.protocol.EventLoopGroupUtil;
+import com.xiaojiezhu.simpletx.protocol.context.ConnectionContextHolder;
+import com.xiaojiezhu.simpletx.protocol.context.DefaultConnectionContextHolder;
+import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
 import com.xiaojiezhu.simpletx.util.StringUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -26,6 +29,10 @@ public class DefaultConnectionPool implements ConnectionPool {
 
     @Getter
     @Setter
+    private ProtocolDispatcher protocolDispatcher;
+
+    @Getter
+    @Setter
     private String host;
 
     @Getter
@@ -42,6 +49,8 @@ public class DefaultConnectionPool implements ConnectionPool {
     private FixedChannelPool pool;
 
     private SimpleChannelPoolHandler poolHandler;
+
+    private ConnectionContextHolder connectionContextHolder;
 
     @Override
     public Connection getConnection() throws IOException {
@@ -81,6 +90,8 @@ public class DefaultConnectionPool implements ConnectionPool {
     private void init(){
         this.check();
 
+        this.connectionContextHolder = new DefaultConnectionContextHolder();
+
         Bootstrap bootstrap = new Bootstrap();
         EventLoopGroup group = EventLoopGroupUtil.create();
         bootstrap.group(group);
@@ -89,7 +100,7 @@ public class DefaultConnectionPool implements ConnectionPool {
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.remoteAddress(this.host , this.port);
 
-        this.poolHandler = new SimpleChannelPoolHandler();
+        this.poolHandler = new SimpleChannelPoolHandler(this.protocolDispatcher , this.connectionContextHolder);
         pool = new FixedChannelPool(bootstrap , poolHandler , this.maxActive);
 
     }
@@ -106,6 +117,9 @@ public class DefaultConnectionPool implements ConnectionPool {
         }
         if(this.maxActive <= 0){
             throw new IllegalArgumentException("macActive must > 0");
+        }
+        if(this.protocolDispatcher == null){
+            throw new NullPointerException("the protocol dispatcher is not set");
         }
     }
 

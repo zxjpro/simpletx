@@ -36,6 +36,7 @@
         <redisson.version>3.9.1</redisson.version>
         <aspectjrt.version>1.9.2</aspectjrt.version>
         <slf4j.version>1.7.25</slf4j.version>
+        <log4j2.version>2.6.2</log4j2.version>
         <kryo.version>4.0.2</kryo.version>
         <fastjson.version>1.2.54</fastjson.version>
     </properties>
@@ -103,11 +104,7 @@
                 <version>${aspectjrt.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
+
 
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
@@ -165,6 +162,28 @@
             </dependency>
             <!-- project self ... start -->
 
+
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency> <!-- 桥接：告诉Slf4j使用Log4j2 -->
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
 
 
             <dependency>

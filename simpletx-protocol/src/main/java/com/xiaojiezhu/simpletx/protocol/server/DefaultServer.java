@@ -12,12 +12,16 @@ import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author xiaojie.zhu
  * time 2018/12/16 21:14
  */
 public class DefaultServer implements Server{
+
+    public final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private String host;
     private int port;
@@ -80,7 +84,8 @@ public class DefaultServer implements Server{
         bootstrap.childHandler(serverChannelInitializer);
 
         try {
-            ChannelFuture future = bootstrap.bind(host, port);
+            ChannelFuture future = bootstrap.bind(host, port).sync();
+            LOG.info("simple start success");
             future.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();

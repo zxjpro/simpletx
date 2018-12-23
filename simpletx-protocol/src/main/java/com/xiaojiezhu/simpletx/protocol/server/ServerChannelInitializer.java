@@ -2,7 +2,10 @@ package com.xiaojiezhu.simpletx.protocol.server;
 
 import com.xiaojiezhu.simpletx.protocol.codec.MessageDecoder;
 import com.xiaojiezhu.simpletx.protocol.codec.MessageEncoder;
+import com.xiaojiezhu.simpletx.protocol.context.InputPacketManager;
+import com.xiaojiezhu.simpletx.protocol.context.SimpleInputPacketManager;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
+import com.xiaojiezhu.simpletx.protocol.packet.InputPacket;
 import com.xiaojiezhu.simpletx.protocol.server.event.ConnectionEventListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -20,6 +23,8 @@ public class ServerChannelInitializer extends ChannelInitializer<SocketChannel> 
 
     private ConnectionEventListener connectionEventListener;
 
+    private final InputPacketManager inputPacketManager = new SimpleInputPacketManager();
+
     public ServerChannelInitializer(ProtocolDispatcher protocolDispatcher , ServerContext serverContext) {
         this.protocolDispatcher = protocolDispatcher;
         this.serverContext = serverContext;
@@ -30,7 +35,7 @@ public class ServerChannelInitializer extends ChannelInitializer<SocketChannel> 
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new MessageDecoder());
 
-        ServerChannelHandler serverChannelHandler = new ServerChannelHandler(this.protocolDispatcher, this.serverContext);
+        ServerChannelHandler serverChannelHandler = new ServerChannelHandler(this.protocolDispatcher, this.serverContext , this.inputPacketManager);
         serverChannelHandler.setConnectionEventListener(this.connectionEventListener);
         pipeline.addLast(serverChannelHandler);
 

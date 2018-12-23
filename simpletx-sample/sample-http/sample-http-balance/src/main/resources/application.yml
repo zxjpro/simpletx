@@ -25,5 +25,5 @@ simpletx:
   server:
     host: 127.0.0.1
     port: 10290
-    password: hello
+    password: 123
     maxActive: 10

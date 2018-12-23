@@ -105,7 +105,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
      */
     protected final TransactionGroupManager getTransactionGroupManager() {
         if (this.transactionGroupManager == null) {
-            synchronized (getClass()) {
+            synchronized (this) {
                 if (this.transactionGroupManager == null) {
                     this.transactionGroupManager = this.beanFactory.getBean(TransactionGroupManager.class);
                 }
@@ -142,7 +142,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
         methodParameter.setMethodName(transactionMethodAttribute.getMethod().getName());
 
         if (transactionInfo.isRootTransaction()) {
-            transactionGroupManager.createGroup(transactionInfo, methodParameter);
+            getTransactionGroupManager().createGroup(transactionInfo, methodParameter);
 
             Object result;
             try {
@@ -161,7 +161,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
             return result;
         } else {
             // join transaction
-            transactionGroupManager.joinGroup(transactionInfo, methodParameter);
+            getTransactionGroupManager().joinGroup(transactionInfo, methodParameter);
 
             Object result = null;
             Throwable ex = null;

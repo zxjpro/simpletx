@@ -1,8 +1,6 @@
 package com.xiaojiezhu.simpletx.protocol.server.event;
 
-import com.xiaojiezhu.simpletx.protocol.server.ConnectionContext;
-
-import java.nio.channels.Channel;
+import com.xiaojiezhu.simpletx.protocol.context.ConnectionContext;
 
 /**
  * @author xiaojie.zhu

@@ -2,6 +2,7 @@ package com.xiaojiezhu.simpletx.common.parameter;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author xiaojie.zhu
@@ -9,6 +10,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@ToString
 public class MethodParameter {
 
     private String className;
@@ -18,4 +20,7 @@ public class MethodParameter {
     private String methodName;
 
     private Object[] args;
+
+
+
 }

@@ -1,4 +1,4 @@
-package com.xiaojiezhu.simpletx.server.util;
+package com.xiaojiezhu.simpletx.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
