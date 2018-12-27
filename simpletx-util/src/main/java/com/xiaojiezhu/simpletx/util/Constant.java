@@ -9,6 +9,8 @@ public class Constant {
     /**
      * this info can not delete , it will be system error
      */
+    public static final String SIMPLETX_SERVER = "simpletx.server";
+    public static final String SIMPLETX_CLIENT = "simpletx.client";
     public static final String AUTHOR = "simpletx.author";
     public static final String AUTHOR_INFO = "zhu.xiaojie";
 
@@ -22,8 +24,7 @@ public class Constant {
              */
             public static final int CODE_AUTH_KEY = 100;
 
-            public static final int CODE_OK = 101;
-            public static final int CODE_ERROR = 102;
+            public static final int CODE_OK_ERROR = 101;
 
             /**
              * simpletx-server notify all of the transaction group to commit transaction
@@ -40,7 +41,7 @@ public class Constant {
 
             public static final String AUTH_KEY = "AUTH_KEY";
             /**
-             * Login success
+             * server Login success
              */
             public static final String LOGIN_SUCCESS = "_login_success";
             /**
@@ -88,6 +89,11 @@ public class Constant {
         public static class ConnectionSession {
 
             public static final String ID = "_id";
+
+            /**
+             * server Login success
+             */
+            public static final String LOGIN_SUCCESS = "_login_success";
         }
 
     }

@@ -5,6 +5,8 @@ import com.xiaojiezhu.simpletx.common.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.common.define.Propagation;
 import com.xiaojiezhu.simpletx.common.executor.ThreadExecutor;
 import com.xiaojiezhu.simpletx.common.parameter.MethodParameter;
+import com.xiaojiezhu.simpletx.core.exception.SimpletxCommitException;
+import com.xiaojiezhu.simpletx.core.exception.SimpletxRollbackException;
 import com.xiaojiezhu.simpletx.core.info.SimpleTransactionMethodAttribute;
 import com.xiaojiezhu.simpletx.core.info.SimpletxTransactionUtil;
 import com.xiaojiezhu.simpletx.core.info.TransactionMethodAttribute;
@@ -40,10 +42,6 @@ import java.util.concurrent.TimeoutException;
  */
 public abstract class TransactionAspectSupport implements InitializingBean, BeanFactoryAware {
 
-    /**
-     * the thread wait queue logger over size
-     */
-    private static final int LOGGER_TASK_WAIT_SIZE = 2;
 
     /**
      * TODO: 需要提取为参数
@@ -196,10 +194,6 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
                     }
                 }
             });
-            long waitThreadSize = threadExecutor.getWaitThreadSize();
-            if(waitThreadSize > LOGGER_TASK_WAIT_SIZE){
-                LOG.error("task queue is waiting " + waitThreadSize + " size");
-            }
 
             if (ex != null) {
                 throw ex;
@@ -217,7 +211,12 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
         final Runnable commitRunnable = new Runnable() {
             @Override
             public void run() {
-                runAfterSuccess(transactionInfo);
+                try {
+                    runAfterSuccess(transactionInfo);
+                } catch (SimpletxCommitException e) {
+                    e.printStackTrace();
+                    //TODO：处理提交事务失败的异常
+                }
             }
         };
         return commitRunnable;
@@ -227,7 +226,12 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
         final Runnable rollbackRunnable = new Runnable() {
             @Override
             public void run() {
-                runAfterThrowable(transactionInfo, null);
+                try {
+                    runAfterThrowable(transactionInfo, null);
+                } catch (SimpletxRollbackException e) {
+                    e.printStackTrace();
+                    //TODO: 处理回滚事务失败的异常
+                }
             }
         };
         return rollbackRunnable;
@@ -238,7 +242,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
      *
      * @param transactionInfo
      */
-    protected abstract void runAfterSuccess(TransactionInfo transactionInfo);
+    protected abstract void runAfterSuccess(TransactionInfo transactionInfo) throws SimpletxCommitException;
 
     /**
      * run target method throw exception
@@ -246,7 +250,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
      * @param transactionInfo
      * @param throwable
      */
-    protected abstract void runAfterThrowable(TransactionInfo transactionInfo, Throwable throwable);
+    protected abstract void runAfterThrowable(TransactionInfo transactionInfo, Throwable throwable) throws SimpletxRollbackException;
 
 
     protected TransactionInfo createTransactionIfNecessary(TransactionMethodAttribute methodAttribute) {

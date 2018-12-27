@@ -88,7 +88,6 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         LOG.info(StringUtils.str("channel[ " , ctx.channel().id() + " ] is connected"));
-        this.serverContext.register(ctx.channel());
 
         if(this.connectionEventListener != null){
             this.connectionEventListener.onChannelActive(this.serverContext.getConnectionContext(ctx.channel()));

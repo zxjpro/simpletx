@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.protocol.context;
 
+import com.xiaojiezhu.simpletx.protocol.message.Message;
 import com.xiaojiezhu.simpletx.util.Constant;
 import io.netty.channel.Channel;
 
@@ -7,7 +8,7 @@ import io.netty.channel.Channel;
  * @author xiaojie.zhu
  * time 2018/12/23 16:07
  */
-public class DefaultServerConnectionContext extends DefaultConnectionContext implements ServerConnectionContext {
+public class DefaultServerConnectionContext extends AbstractConnectionContext implements ServerConnectionContext {
 
     /**
      * a project name
@@ -18,8 +19,39 @@ public class DefaultServerConnectionContext extends DefaultConnectionContext imp
      */
     private String appid;
 
+    private boolean authorization;
+
+    private int id;
+
     public DefaultServerConnectionContext(Channel channel) {
         super(channel);
+    }
+
+
+    @Override
+    public boolean isAuthorization() {
+        if(this.authorization){
+            return true;
+        }else{
+            if(null != get(Constant.Server.ConnectionSession.LOGIN_SUCCESS)){
+                this.authorization = true;
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+
+    @Override
+    public int getId() {
+        if(this.id == -1){
+            Object id = this.get(Constant.Server.ConnectionSession.ID);
+            if(id == null){
+                throw new RuntimeException("id not init");
+            }
+            this.id = Integer.parseInt(String.valueOf(id));
+        }
+        return this.id;
     }
 
     @Override

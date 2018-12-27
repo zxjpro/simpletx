@@ -23,6 +23,7 @@ public class DefaultTransactionServerContext extends DefaultServerContext implem
 
     public DefaultTransactionServerContext() {
         Thread thread = new Thread(new CleanTool());
+        thread.setName(getClass().getSimpleName() + "#cleanTool");
         thread.start();
     }
 

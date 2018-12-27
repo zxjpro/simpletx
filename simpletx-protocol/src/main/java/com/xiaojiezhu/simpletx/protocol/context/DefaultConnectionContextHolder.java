@@ -2,6 +2,7 @@ package com.xiaojiezhu.simpletx.protocol.context;
 
 import com.xiaojiezhu.simpletx.util.Constant;
 import com.xiaojiezhu.simpletx.util.StringUtils;
+import com.xiaojiezhu.simpletx.util.asserts.Asserts;
 import io.netty.channel.Channel;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,7 +18,7 @@ public class DefaultConnectionContextHolder implements ConnectionContextHolder {
     private boolean server;
 
     public DefaultConnectionContextHolder() {
-        if(System.getProperty(Constant.AUTHOR) != null){
+        if(System.getProperty(Constant.SIMPLETX_SERVER) != null){
             this.server = true;
         }else{
             this.server = false;
@@ -28,21 +29,6 @@ public class DefaultConnectionContextHolder implements ConnectionContextHolder {
         return this.connectionContextMap;
     }
 
-    @Override
-    public void register(Channel channel) {
-        synchronized (channel){
-            if(connectionContextMap.get(channel) != null){
-                throw new RuntimeException("register repeat , the channel context is exists");
-            }
-
-            if(this.server){
-                this.connectionContextMap.put(channel , new DefaultServerConnectionContext(channel));
-            }else{
-                this.connectionContextMap.put(channel , new DefaultConnectionContext(channel));
-            }
-        }
-
-    }
 
     @Override
     public void remove(Channel channel) {
@@ -61,10 +47,24 @@ public class DefaultConnectionContextHolder implements ConnectionContextHolder {
 
     @Override
     public ConnectionContext getConnectionContext(Channel channel) {
+        Asserts.assertNotNull(channel , "channel can not be null");
         ConnectionContext connectionContext = this.connectionContextMap.get(channel);
         if(connectionContext == null){
-            throw new NullPointerException(StringUtils.str("The channel ",channel , " is not found connection context"));
+
+            synchronized (channel){
+                if(connectionContext == null){
+                    if(this.server){
+                        connectionContext = new DefaultServerConnectionContext(channel);
+                    }else{
+                        connectionContext = new ClientConnectionContext(channel);
+
+                    }
+                    this.connectionContextMap.put(channel , connectionContext);
+
+                }
+            }
         }
+
         return connectionContext;
     }
 }

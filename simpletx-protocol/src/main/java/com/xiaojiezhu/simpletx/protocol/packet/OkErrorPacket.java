@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.print.DocFlavor;
+
 /**
  * response ok or error message
  * @author xiaojie.zhu
@@ -13,8 +15,10 @@ import lombok.Setter;
  */
 @AllArgsConstructor
 @NoArgsConstructor
-public class OkErrorPacket implements OutputPacket ,InputPacket {
+public class OkErrorPacket implements OutputPacket ,InputPacket,ResponseInputPacket {
 
+    @Getter
+    private boolean ok;
     /**
      * 响应请求过来的ID
      */
@@ -26,6 +30,7 @@ public class OkErrorPacket implements OutputPacket ,InputPacket {
 
     @Override
     public void write(ByteBuffer byteBuf) {
+        byteBuf.writeBoolean(this.ok);
         byteBuf.writeInt(this.responseMsgId);
         if(!StringUtils.isEmpty(msg)){
             byteBuf.writeBytes(msg.getBytes());
@@ -34,9 +39,15 @@ public class OkErrorPacket implements OutputPacket ,InputPacket {
 
     @Override
     public void read(ByteBuffer byteBuf) {
+        this.ok = byteBuf.readBoolean();
         this.responseMsgId = byteBuf.readInt();
         if(byteBuf.readableBytes() > 0){
             this.msg = new String(byteBuf.readBytesToLast());
         }
+    }
+
+    @Override
+    public int getResponseMessageId() {
+        return this.responseMsgId;
     }
 }

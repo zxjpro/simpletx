@@ -9,9 +9,6 @@ import io.netty.channel.Channel;
  */
 public interface ConnectionContextHolder {
 
-    void register(Channel channel);
-
-
     void remove(Channel channel);
 
     int connectionSize();

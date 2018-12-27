@@ -1,16 +1,18 @@
 package com.xiaojiezhu.simpletx.core.net;
 
 import com.xiaojiezhu.simpletx.common.codec.ObjectCodec;
+import com.xiaojiezhu.simpletx.protocol.client.*;
+import com.xiaojiezhu.simpletx.protocol.future.DefaultFuture;
+import com.xiaojiezhu.simpletx.protocol.future.Future;
+import com.xiaojiezhu.simpletx.protocol.future.FutureCondition;
 import com.xiaojiezhu.simpletx.common.parameter.MethodParameter;
 import com.xiaojiezhu.simpletx.core.exception.SocketRuntimeException;
 import com.xiaojiezhu.simpletx.core.net.packet.output.CommitRollbackOutputPacket;
 import com.xiaojiezhu.simpletx.core.net.packet.output.CreateJoinGroupOutputPacket;
 import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
-import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupInvokeFuture;
 import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupInvokeStatus;
 import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupManager;
-import com.xiaojiezhu.simpletx.protocol.client.Connection;
-import com.xiaojiezhu.simpletx.protocol.client.ConnectionPool;
+import com.xiaojiezhu.simpletx.protocol.future.Futures;
 import com.xiaojiezhu.simpletx.protocol.message.Message;
 import com.xiaojiezhu.simpletx.protocol.message.MessageCreator;
 import com.xiaojiezhu.simpletx.protocol.message.MessageUtil;
@@ -31,34 +33,45 @@ public class SocketTransactionGroupManager implements TransactionGroupManager {
     public final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private final ConnectionPool connectionPool;
-
+    private final SimpletxContext simpletxContext;
     private final ObjectCodec objectCodec;
 
     public SocketTransactionGroupManager(ConnectionPool connectionPool , ObjectCodec objectCodec) {
         this.connectionPool = connectionPool;
+        this.simpletxContext = ((DefaultConnectionPool) connectionPool).getSimpletxContext();
         this.objectCodec = objectCodec;
     }
 
     @Override
-    public void createGroup(String transactionGroupId , TransactionInfo transactionInfo, MethodParameter methodParameter) {
-        createJoinGroup(true , transactionGroupId,transactionInfo, methodParameter);
+    public Future<OkErrorResult> createGroup(String transactionGroupId, TransactionInfo transactionInfo, MethodParameter methodParameter) {
+        int messageId = MessageIdGenerator.getInstance().next();
+        Future<OkErrorResult> future = Futures.createOkErrorFuture(this.simpletxContext , messageId);
+
+        createJoinGroup(true, messageId,transactionGroupId, transactionInfo, methodParameter);
+        return future;
     }
 
     @Override
-    public void joinGroup(String transactionGroupId , TransactionInfo transactionInfo, MethodParameter methodParameter) {
-        createJoinGroup(false , transactionGroupId, transactionInfo , methodParameter);
+    public Future<OkErrorResult> joinGroup(String transactionGroupId , TransactionInfo transactionInfo, MethodParameter methodParameter) {
+        int messageId = MessageIdGenerator.getInstance().next();
+        Future<OkErrorResult> future = Futures.createOkErrorFuture(this.simpletxContext , messageId);
+
+        createJoinGroup(false , messageId,transactionGroupId, transactionInfo , methodParameter);
+        return future;
 
     }
+
+
 
 
     /**
      * create or join group
+     * @param messageId the message id
      * @param transactionInfo
      * @param methodParameter
      * @return msgId
      */
-    private int createJoinGroup(boolean create, String transactionGroupId, TransactionInfo transactionInfo, MethodParameter methodParameter) {
-        int msgId = MessageIdGenerator.getInstance().next();
+    private void createJoinGroup(boolean create, int messageId,String transactionGroupId, TransactionInfo transactionInfo, MethodParameter methodParameter) {
         Connection connection = null;
         try {
             connection = connectionPool.getConnection();
@@ -78,7 +91,7 @@ public class SocketTransactionGroupManager implements TransactionGroupManager {
             connection.sendMessage(new MessageCreator() {
                 @Override
                 public Message create(ByteBuf buffer) {
-                    Message message = MessageUtil.createMessage(msgId, finalCode, buffer, packet);
+                    Message message = MessageUtil.createMessage(messageId, finalCode, buffer, packet);
                     return message;
                 }
             });
@@ -95,30 +108,34 @@ public class SocketTransactionGroupManager implements TransactionGroupManager {
             IOUtils.close(connection);
         }
 
-        return msgId;
     }
 
 
 
     @Override
     public TransactionGroupInvokeStatus status() {
-        return null;
+        throw new RuntimeException("this method not implement");
     }
 
     @Override
-    public TransactionGroupInvokeFuture notifyCommit(String transactionGroupId) {
-        commitRollback(transactionGroupId,true);
-        return null;
+    public Future<OkErrorResult> notifyCommit(String transactionGroupId) {
+        int messageId = MessageIdGenerator.getInstance().next();
+        Future<OkErrorResult> future = Futures.createOkErrorFuture(this.simpletxContext , messageId);
+
+        commitRollback(messageId , transactionGroupId,true);
+        return future;
     }
 
     @Override
-    public TransactionGroupInvokeFuture notifyRollback(String transactionGroupId) {
-        commitRollback(transactionGroupId,false);
-        return null;
+    public Future<OkErrorResult> notifyRollback(String transactionGroupId) {
+        int messageId = MessageIdGenerator.getInstance().next();
+        Future<OkErrorResult> future = Futures.createOkErrorFuture(this.simpletxContext , messageId);
+
+        commitRollback(messageId , transactionGroupId,false);
+        return future;
     }
 
-    private int commitRollback(String transactionId , boolean commit){
-        int msgId = MessageIdGenerator.getInstance().next();
+    private void commitRollback(int messageId , String transactionId , boolean commit){
         Connection connection = null;
         try {
             connection = connectionPool.getConnection();
@@ -137,7 +154,7 @@ public class SocketTransactionGroupManager implements TransactionGroupManager {
             connection.sendMessage(new MessageCreator() {
                 @Override
                 public Message create(ByteBuf buffer) {
-                    Message message = MessageUtil.createMessage(msgId, finalCode, buffer, packet);
+                    Message message = MessageUtil.createMessage(messageId, finalCode, buffer, packet);
                     return message;
                 }
             });
@@ -154,6 +171,5 @@ public class SocketTransactionGroupManager implements TransactionGroupManager {
             IOUtils.close(connection);
         }
 
-        return msgId;
     }
 }

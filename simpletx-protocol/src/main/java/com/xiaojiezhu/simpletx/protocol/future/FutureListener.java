@@ -1,4 +1,4 @@
-package com.xiaojiezhu.simpletx.common.executor;
+package com.xiaojiezhu.simpletx.protocol.future;
 
 /**
  * @author xiaojie.zhu

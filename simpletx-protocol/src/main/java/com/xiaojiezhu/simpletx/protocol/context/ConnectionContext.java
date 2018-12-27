@@ -4,11 +4,13 @@ import com.xiaojiezhu.simpletx.protocol.message.Message;
 import com.xiaojiezhu.simpletx.protocol.message.MessageCreator;
 import io.netty.channel.Channel;
 
+import java.io.Closeable;
+
 /**
  * @author xiaojie.zhu
  * time 2018/12/17 23:20
  */
-public interface ConnectionContext {
+public interface ConnectionContext extends MessageSender, Closeable {
 
     /**
      * the connect time
@@ -37,17 +39,7 @@ public interface ConnectionContext {
      */
     void set(Object key ,Object value);
 
-    /**
-     * send message
-     * @param message
-     */
-    void sendMessage(Message message);
 
-    /**
-     * send message by message creator , it contains a byte buffer
-     * @param messageCreator
-     */
-    void sendMessage(MessageCreator messageCreator);
 
     /**
      * get the remove ip address
@@ -55,10 +47,6 @@ public interface ConnectionContext {
      */
     String remoteIpAddress();
 
-    /**
-     * close the connection
-     */
-    void close();
 
     /**
      * the connection is login success

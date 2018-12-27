@@ -25,9 +25,9 @@ public class DispatcherHelper {
         ProtocolDispatcher protocolDispatcher = new DefaultProtocolDispatcher();
 
         //random auth key
-        protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_AUTH_KEY, new LoginHandler(this.appName, this.appid, properties.getPassword()));
+        protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_AUTH_KEY, new LoginHandler(this.simpletxContext , this.appName, this.appid, properties.getPassword()));
 
-        protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_OK , new OkErrorHandler(this.simpletxContext));
+        protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_OK_ERROR , new OkErrorHandler(this.simpletxContext));
 
         return protocolDispatcher;
     }

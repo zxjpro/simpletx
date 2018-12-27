@@ -29,7 +29,6 @@ public class SimpleChannelPoolHandler implements ChannelPoolHandler {
     private final ProtocolDispatcher protocolDispatcher;
     private final SimpletxContext simpletxContext;
 
-    private final InputPacketManager inputPacketManager = new SimpleInputPacketManager();
 
     public SimpleChannelPoolHandler(ProtocolDispatcher protocolDispatcher , SimpletxContext simpletxContext) {
         this.protocolDispatcher = protocolDispatcher;
@@ -59,7 +58,7 @@ public class SimpleChannelPoolHandler implements ChannelPoolHandler {
 
         pipeline.addLast(new MessageDecoder());
 
-        pipeline.addLast(new ClientChannelHandler(this.protocolDispatcher , this.simpletxContext , this.inputPacketManager));
+        pipeline.addLast(new ClientChannelHandler(this.protocolDispatcher , this.simpletxContext));
 
         pipeline.addLast(new MessageEncoder());
 

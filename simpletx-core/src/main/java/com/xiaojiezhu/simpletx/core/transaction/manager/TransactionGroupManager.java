@@ -1,7 +1,8 @@
 package com.xiaojiezhu.simpletx.core.transaction.manager;
 
-import com.xiaojiezhu.simpletx.common.executor.Future;
+import com.xiaojiezhu.simpletx.protocol.future.Future;
 import com.xiaojiezhu.simpletx.common.parameter.MethodParameter;
+import com.xiaojiezhu.simpletx.core.net.OkErrorResult;
 import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
 
 /**
@@ -10,9 +11,9 @@ import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
  */
 public interface TransactionGroupManager {
 
-    void createGroup(String transactionGroupId , TransactionInfo transactionInfo, MethodParameter methodParameter);
+    Future<OkErrorResult> createGroup(String transactionGroupId , TransactionInfo transactionInfo, MethodParameter methodParameter);
 
-    void joinGroup(String transactionGroupId , TransactionInfo transactionInfo, MethodParameter methodParameter);
+    Future<OkErrorResult> joinGroup(String transactionGroupId , TransactionInfo transactionInfo, MethodParameter methodParameter);
 
     /**
      * get the transaction group invoke status
@@ -21,9 +22,9 @@ public interface TransactionGroupManager {
     TransactionGroupInvokeStatus status();
 
 
-    TransactionGroupInvokeFuture notifyCommit(String transactionGroupId);
+    Future<OkErrorResult> notifyCommit(String transactionGroupId);
 
-    TransactionGroupInvokeFuture notifyRollback(String transactionGroupId);
+    Future<OkErrorResult> notifyRollback(String transactionGroupId);
 
 
 }

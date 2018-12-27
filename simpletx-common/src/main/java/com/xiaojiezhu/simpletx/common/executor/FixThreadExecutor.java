@@ -1,6 +1,8 @@
 package com.xiaojiezhu.simpletx.common.executor;
 
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -10,6 +12,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * time 2018/12/8 17:49
  */
 public class FixThreadExecutor implements ThreadExecutor {
+    public final Logger LOG = LoggerFactory.getLogger(getClass());
+    /**
+     * the thread wait queue logger over size
+     */
+    private static final int LOGGER_TASK_WAIT_SIZE = 2;
 
     private final int threadSize;
     private final ThreadPoolExecutor pool;
@@ -29,7 +36,14 @@ public class FixThreadExecutor implements ThreadExecutor {
     }
 
     @Override
-    public ExecutorFuture execute(Runnable runnable) {
+    public ExecutorFuture executeFuture(Runnable runnable) {
+
+        long waitThreadSize = this.getWaitThreadSize();
+        if(waitThreadSize > LOGGER_TASK_WAIT_SIZE){
+            LOG.error("task queue is waiting " + waitThreadSize + " size");
+        }
+
+
         this.pool.execute(runnable);
         return null;
     }
@@ -42,6 +56,11 @@ public class FixThreadExecutor implements ThreadExecutor {
     @Override
     public long getWaitThreadSize() {
         return this.queue.size();
+    }
+
+    @Override
+    public void execute(Runnable command) {
+        this.executeFuture(command);
     }
 
 

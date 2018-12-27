@@ -6,6 +6,7 @@ import com.xiaojiezhu.simpletx.protocol.context.ServerConnectionContext;
 import com.xiaojiezhu.simpletx.util.StringUtils;
 import io.netty.channel.Channel;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +25,11 @@ public class DefaultServerContext extends DefaultConnectionContextHolder impleme
             throw new NullPointerException(StringUtils.str(id , " not found"));
         }
 
-        serverConnectionContext.close();
+        try {
+            serverConnectionContext.close();
+        } catch (IOException e) {
+            throw new RuntimeException("disconnection fail" , e);
+        }
 
     }
 

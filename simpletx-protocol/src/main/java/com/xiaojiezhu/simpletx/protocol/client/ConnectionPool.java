@@ -8,6 +8,10 @@ import java.io.IOException;
  */
 public interface ConnectionPool {
 
+    /**
+     * start connection
+     */
+    void start();
 
     Connection getConnection() throws IOException;
 
@@ -22,5 +26,11 @@ public interface ConnectionPool {
      * @return
      */
     int getMaxActive();
+
+    /**
+     * is start connection
+     * @return
+     */
+    boolean isStart();
 
 }

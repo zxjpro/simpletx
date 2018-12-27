@@ -37,14 +37,14 @@ public class MessageUtil {
     }
 
     public static Message createOkMessage(int responseMsgId , String msg , ByteBuf byteBuf) {
-        OkErrorPacket packet = new OkErrorPacket(responseMsgId , msg);
-        Message message = createMessage(MessageIdGenerator.getInstance().next(), Constant.Server.ProtocolCode.CODE_OK, byteBuf,packet);
+        OkErrorPacket packet = new OkErrorPacket(true , responseMsgId , msg);
+        Message message = createMessage(MessageIdGenerator.getInstance().next(), Constant.Server.ProtocolCode.CODE_OK_ERROR, byteBuf,packet);
         return message;
     }
 
     public static Message createErrorMessage(int responseMsgId , String msg , ByteBuf byteBuf) {
-        OkErrorPacket packet = new OkErrorPacket(responseMsgId , msg);
-        Message message = createMessage(MessageIdGenerator.getInstance().next(), Constant.Server.ProtocolCode.CODE_ERROR, byteBuf,packet);
+        OkErrorPacket packet = new OkErrorPacket(false , responseMsgId , msg);
+        Message message = createMessage(MessageIdGenerator.getInstance().next(), Constant.Server.ProtocolCode.CODE_OK_ERROR, byteBuf,packet);
         return message;
     }
 

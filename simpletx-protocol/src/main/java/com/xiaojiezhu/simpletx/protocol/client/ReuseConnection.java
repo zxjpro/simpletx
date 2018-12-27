@@ -1,11 +1,12 @@
 package com.xiaojiezhu.simpletx.protocol.client;
 
+import com.xiaojiezhu.simpletx.protocol.context.ClientConnectionContext;
+import com.xiaojiezhu.simpletx.protocol.context.ConnectionContext;
 import com.xiaojiezhu.simpletx.protocol.message.Message;
 import com.xiaojiezhu.simpletx.protocol.message.MessageCreator;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.FixedChannelPool;
-import lombok.AllArgsConstructor;
 
 import java.io.IOException;
 
@@ -13,37 +14,38 @@ import java.io.IOException;
  * @author xiaojie.zhu
  * time 2018/12/16 20:43
  */
-@AllArgsConstructor
 class ReuseConnection implements Connection {
 
     private FixedChannelPool pool;
-    private Channel channel;
+    private ConnectionContext connectionContext;
+
+    public ReuseConnection(FixedChannelPool pool , ConnectionContext connectionContext) {
+        this.pool = pool;
+        this.connectionContext = connectionContext;
+    }
+
+
+    @Override
+    public void close() throws IOException {
+        this.pool.release(this.connectionContext.channel());
+    }
+
+    public void close0() throws IOException {
+        this.connectionContext.close();
+    }
 
     @Override
     public boolean isActive() {
-        return this.channel.isActive();
+        return this.connectionContext.isActive();
     }
 
     @Override
     public void sendMessage(Message message) {
-        channel.writeAndFlush(message);
+        this.connectionContext.sendMessage(message);
     }
 
     @Override
     public void sendMessage(MessageCreator messageCreator) {
-        ByteBuf buffer = channel.alloc().buffer();
-        Message message = messageCreator.create(buffer);
-
-        this.sendMessage(message);
+        this.connectionContext.sendMessage(messageCreator);
     }
-
-    @Override
-    public void close() throws IOException {
-        this.pool.release(this.channel);
-    }
-
-    public void close0(){
-        this.channel.close();
-    }
-
 }

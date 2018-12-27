@@ -19,7 +19,6 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -55,7 +54,9 @@ public class CommitRollbackHandler implements ProtocolHandler<CommitRollbackInpu
 
 
 
+        //TODO: 这里应该等待所有的节点全部通知返回处理成功后，再通知发起者成功
         commitOrRollback(content, connectionContext, blocks);
+
 
 
     }
@@ -79,7 +80,7 @@ public class CommitRollbackHandler implements ProtocolHandler<CommitRollbackInpu
 
 
         StringBuilder sb = new StringBuilder();
-        sb.append(operaStr).append(" transaction group success , groupId: ").append(content.getTransactionGroupId());
+        sb.append(operaStr).append(" transaction group success , groupId: ").append(content.getTransactionGroupId()).append(" , ");
         sb.append(" root transaction block [ ").append(connectionContext.getAppName()).append(" : ").append(connectionContext.getAppid());
         sb.append(" : ");
         for (TransactionBlock block : blocks) {
@@ -102,8 +103,6 @@ public class CommitRollbackHandler implements ProtocolHandler<CommitRollbackInpu
                     sb.append(" } ");
 
                     notifyMessage(content, protocolCode, cc);
-                } else {
-                    System.out.println("删除此行代码");
                 }
             }
         }

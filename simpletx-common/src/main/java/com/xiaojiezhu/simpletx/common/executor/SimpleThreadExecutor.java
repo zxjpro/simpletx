@@ -13,7 +13,7 @@ public class SimpleThreadExecutor implements ThreadExecutor {
 
 
     @Override
-    public ExecutorFuture execute(Runnable runnable) {
+    public ExecutorFuture executeFuture(Runnable runnable) {
         Worker worker = new Worker(runnable);
 
         Thread thread = new Thread(worker);
@@ -24,7 +24,7 @@ public class SimpleThreadExecutor implements ThreadExecutor {
 
     @Override
     public long getMaxThreadSize() {
-        return 0;
+        return Long.MAX_VALUE;
     }
 
     @Override
@@ -32,4 +32,8 @@ public class SimpleThreadExecutor implements ThreadExecutor {
         return 0;
     }
 
+    @Override
+    public void execute(Runnable command) {
+        this.executeFuture(command);
+    }
 }

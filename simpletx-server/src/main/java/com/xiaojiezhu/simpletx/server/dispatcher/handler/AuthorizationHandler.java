@@ -14,6 +14,8 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 /**
  * @author xiaojie.zhu
  * time 2018/12/18 20:00
@@ -44,7 +46,11 @@ public class AuthorizationHandler implements ProtocolHandler<AuthorizationInputP
             });
         }else{
             LOG.info(StringUtils.str(connectionContext.remoteIpAddress() , " login fail"));
-            connectionContext.close();
+            try {
+                connectionContext.close();
+            } catch (IOException e) {
+                throw new RuntimeException("close connection fail" , e);
+            }
         }
 
     }

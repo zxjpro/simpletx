@@ -1,6 +1,7 @@
-package com.xiaojiezhu.simpletx.common.executor;
+package com.xiaojiezhu.simpletx.protocol.future;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author xiaojie.zhu
@@ -28,7 +29,7 @@ public interface Future<T> {
      * @return
      * @throws InterruptedException
      */
-    T get(long time , TimeUnit timeUnit) throws InterruptedException;
+    T get(long time , TimeUnit timeUnit) throws InterruptedException, TimeoutException;
 
     /**
      * wait future complete
@@ -41,13 +42,13 @@ public interface Future<T> {
      * @param time
      * @param timeUnit
      */
-    void await(long time, TimeUnit timeUnit) throws InterruptedException;
+    void await(long time, TimeUnit timeUnit) throws InterruptedException, TimeoutException;
 
 
     /**
      * add the future complete listener
      * @param futureListener
      */
-    void addListener(FutureListener<T> futureListener);
+    void addListener(FutureListener<T> futureListener) throws InterruptedException;
 
 }

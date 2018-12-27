@@ -1,9 +1,10 @@
 package com.xiaojiezhu.simpletx.protocol.client;
 
 import com.xiaojiezhu.simpletx.protocol.EventLoopGroupUtil;
-import com.xiaojiezhu.simpletx.protocol.context.ConnectionContextHolder;
-import com.xiaojiezhu.simpletx.protocol.context.DefaultConnectionContextHolder;
+import com.xiaojiezhu.simpletx.protocol.context.*;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
+import com.xiaojiezhu.simpletx.protocol.exception.ConnectionRuntimeException;
+import com.xiaojiezhu.simpletx.util.Constant;
 import com.xiaojiezhu.simpletx.util.StringUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.Executor;
 
 /**
  * @author xiaojie.zhu
@@ -58,11 +60,52 @@ public class DefaultConnectionPool implements ConnectionPool {
 
     private SimpleChannelPoolHandler poolHandler;
 
+    @Setter
     @Getter
-    private final SimpletxContext simpletxContext = new DefaultSimpletxContext();
+    private Executor userExecutor;
+
+    @Setter
+    private SimpletxContext simpletxContext;
+
+    private final InputPacketManager inputPacketManager = new SimpleInputPacketManager();
+
+
+    private volatile boolean start = false;
+
+    public DefaultConnectionPool() {
+        System.setProperty(Constant.SIMPLETX_CLIENT , String.valueOf(true));
+    }
+
+    public SimpletxContext getSimpletxContext(){
+        if(this.simpletxContext == null){
+            throw new NullPointerException("you should call start() method or set simpletxContext");
+        }
+        return this.simpletxContext;
+    }
+
+    @Override
+    public void start() {
+
+        synchronized (this){
+            if(this.start){
+                throw new ConnectionRuntimeException("the connection pool is started");
+            }
+            this.start = true;
+
+            if(this.simpletxContext == null){
+                this.simpletxContext = new DefaultSimpletxContext();
+                ((DefaultSimpletxContext) this.simpletxContext).setExecutor(this.userExecutor);
+                ((DefaultSimpletxContext) this.simpletxContext).setInputPacketManager(this.inputPacketManager);
+            }
+        }
+    }
 
     @Override
     public Connection getConnection() throws IOException {
+        if(!this.isStart()){
+            throw new ConnectionRuntimeException("connection pool not start");
+        }
+
         if(this.pool == null){
             synchronized (this){
                 if(this.pool == null){
@@ -70,6 +113,8 @@ public class DefaultConnectionPool implements ConnectionPool {
                 }
             }
         }
+
+
         long startTime = System.currentTimeMillis();
         Future<Channel> future = pool.acquire();
         Channel channel;
@@ -78,7 +123,8 @@ public class DefaultConnectionPool implements ConnectionPool {
         } catch (Exception e) {
             throw new IOException("get simpletx-server connection fail" , e);
         }
-        ReuseConnection connection = new ReuseConnection(this.pool , channel);
+        ConnectionContext connectionContext = simpletxContext.getConnectionContextHolder().getConnectionContext(channel);
+        ReuseConnection connection = new ReuseConnection(this.pool , connectionContext);
         long endTime = System.currentTimeMillis();
 
         long useTime = endTime - startTime;
@@ -96,8 +142,15 @@ public class DefaultConnectionPool implements ConnectionPool {
         return this.poolHandler.getActive();
     }
 
+    @Override
+    public boolean isStart() {
+        return this.start;
+    }
+
     private void init(){
         this.check();
+
+
 
         Bootstrap bootstrap = new Bootstrap();
         EventLoopGroup group = EventLoopGroupUtil.create();
@@ -127,6 +180,9 @@ public class DefaultConnectionPool implements ConnectionPool {
         }
         if(this.protocolDispatcher == null){
             throw new NullPointerException("the protocol dispatcher is not set");
+        }
+        if(this.userExecutor == null){
+            throw new NullPointerException("the thread executor is not set");
         }
     }
 

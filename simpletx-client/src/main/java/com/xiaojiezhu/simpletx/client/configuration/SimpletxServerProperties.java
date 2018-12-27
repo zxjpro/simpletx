@@ -34,5 +34,10 @@ public class SimpletxServerProperties implements Serializable {
      */
     private String codec = "kryo";
 
+    /**
+     * 从最佳性能来说，分配的线程数量，等于最高并发数量即可，默认值cpu core * 2
+     */
+    private int threadSize = Runtime.getRuntime().availableProcessors() * 2;
+
 
 }

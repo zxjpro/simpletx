@@ -2,6 +2,8 @@ package com.xiaojiezhu.simpletx.client.configuration;
 
 import com.xiaojiezhu.simpletx.client.util.DispatcherHelper;
 import com.xiaojiezhu.simpletx.common.codec.*;
+import com.xiaojiezhu.simpletx.common.executor.FixThreadExecutor;
+import com.xiaojiezhu.simpletx.common.executor.ThreadExecutor;
 import com.xiaojiezhu.simpletx.core.net.SocketTransactionGroupManager;
 import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupManager;
 import com.xiaojiezhu.simpletx.protocol.client.ConnectionPool;
@@ -24,9 +26,17 @@ public class SimpletxServerConfiguration {
     private String appName;
 
 
+
+
+    @Bean
+    @ConditionalOnMissingBean(ThreadExecutor.class)
+    public ThreadExecutor simpletxThreadExecutor(SimpletxServerProperties simpletxServerProperties){
+        return new FixThreadExecutor(simpletxServerProperties.getThreadSize());
+    }
+
     @Bean
     @ConditionalOnMissingBean(ConnectionPool.class)
-    public ConnectionPool connectionPool(SimpletxServerProperties properties) {
+    public ConnectionPool connectionPool(SimpletxServerProperties properties , ThreadExecutor simpletxThreadExecutor) {
         String appid = UUID.randomUUID().toString().replace("-", "");
 
         DefaultConnectionPool connectionPool = new DefaultConnectionPool();
@@ -38,14 +48,16 @@ public class SimpletxServerConfiguration {
         connectionPool.setAppName(appName);
         connectionPool.setAppId(appid);
 
+        connectionPool.setUserExecutor(simpletxThreadExecutor);
+
+        connectionPool.start();
+
+
         SimpletxContext simpletxContext = connectionPool.getSimpletxContext();
 
         DispatcherHelper dispatcherHelper = new DispatcherHelper(this.appName ,appid, simpletxContext, properties);
 
         ProtocolDispatcher protocolDispatcher = dispatcherHelper.createProtocolDispatcher();
-
-
-
 
         connectionPool.setProtocolDispatcher(protocolDispatcher);
 
