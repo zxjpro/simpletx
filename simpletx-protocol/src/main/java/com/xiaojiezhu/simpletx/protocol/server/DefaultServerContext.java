@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.protocol.server;
 
+import com.xiaojiezhu.simpletx.protocol.client.FutureContainer;
 import com.xiaojiezhu.simpletx.protocol.context.ConnectionContext;
 import com.xiaojiezhu.simpletx.protocol.context.DefaultConnectionContextHolder;
 import com.xiaojiezhu.simpletx.protocol.context.ServerConnectionContext;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 
 /**
  * @author xiaojie.zhu
@@ -17,6 +19,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultServerContext extends DefaultConnectionContextHolder implements ServerContext{
 
+    private final Executor executor;
+    private final FutureContainer futureContainer;
+
+    public DefaultServerContext(Executor executor , FutureContainer futureContainer) {
+        this.executor = executor;
+        this.futureContainer = futureContainer;
+    }
 
     @Override
     public void disconnect(int id) {
@@ -59,5 +68,15 @@ public class DefaultServerContext extends DefaultConnectionContextHolder impleme
     @Override
     public ServerConnectionContext findConnectionByAppNameAndAppid(String appName, String appid) {
         return null;
+    }
+
+    @Override
+    public Executor getExecutor() {
+        return this.executor;
+    }
+
+    @Override
+    public FutureContainer getFutureContainer() {
+        return this.futureContainer;
     }
 }

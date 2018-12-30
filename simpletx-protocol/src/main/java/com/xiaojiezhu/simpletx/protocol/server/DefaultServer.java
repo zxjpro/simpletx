@@ -46,7 +46,8 @@ public class DefaultServer implements Server{
     public DefaultServer(String host, int port ) {
         this.host = host;
         this.port = port;
-        this.serverContext = new DefaultServerContext();
+        DefaultServerContext defaultServerContext = new DefaultServerContext();
+
     }
 
     @Override

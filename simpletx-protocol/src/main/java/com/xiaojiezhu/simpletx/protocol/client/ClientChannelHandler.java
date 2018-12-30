@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.protocol.client;
 
+import com.xiaojiezhu.simpletx.protocol.common.AbstractProtocolChannelHandler;
 import com.xiaojiezhu.simpletx.protocol.context.ConnectionContextHolder;
 import com.xiaojiezhu.simpletx.protocol.context.InputPacketManager;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
@@ -23,78 +24,42 @@ import java.util.concurrent.Executor;
  * @author xiaojie.zhu
  * time 2018/12/16 22:34
  */
-public class ClientChannelHandler extends SimpleChannelInboundHandler<Message> {
+public class ClientChannelHandler extends AbstractProtocolChannelHandler {
 
     public final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private final ProtocolDispatcher protocolDispatcher;
     private final SimpletxContext simpletxContext;
-
-    private final InputPacketManager inputPacketManager;
-
-    private final Executor executor;
 
     private final ConnectionContextHolder connectionContextHolder;
 
     private boolean auth = false;
 
     public ClientChannelHandler(ProtocolDispatcher protocolDispatcher, SimpletxContext simpletxContext) {
-        this.protocolDispatcher = protocolDispatcher;
+        super(protocolDispatcher , simpletxContext.getInputPacketManager() , simpletxContext.getExecutor());
         this.simpletxContext = simpletxContext;
-        this.inputPacketManager = simpletxContext.getInputPacketManager();
-        this.executor = simpletxContext.getExecutor();
         this.connectionContextHolder = this.simpletxContext.getConnectionContextHolder();
     }
 
+
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
-        ProtocolHandler dispatcher = this.protocolDispatcher.dispatcher(msg.getHeader().getCode());
-
-        Class<? extends InputPacket> inputPacketClass = this.inputPacketManager.get(dispatcher.getClass());
-
-        InputPacket inputPacket = inputPacketClass.newInstance();
-
-        ByteBuffer byteBuf = new ByteBuffer(Unpooled.wrappedBuffer(msg.getBody()));
-        try {
-            inputPacket.read(byteBuf);
-        } finally {
-            byteBuf.release();
-        }
-
+    protected void channelRead1(ChannelHandlerContext ctx, ProtocolHandler protocolHandler ,  Header header, InputPacket inputPacket) {
         if(inputPacket instanceof ResponseInputPacket){
-            int responseMessageId = ((ResponseInputPacket) inputPacket).getResponseMessageId();
-            FutureContainer futureContainer = this.simpletxContext.getFutureContainer();
-            FutureCondition futureCondition = futureContainer.find(responseMessageId);
-            if(futureCondition == null){
-                throw new NullPointerException("not found futureCondition , id : "  + responseMessageId);
-            }
-            futureContainer.remove(responseMessageId);
-            futureCondition.setValue(inputPacket);
-            futureCondition.signalAll();
 
-            final FutureListener futureListener = futureCondition.getFutureListener();
-            if(futureListener != null){
-                this.executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        futureListener.complete(futureCondition.getFuture());
-                    }
-                });
-            }
+            super.invokeCallback(simpletxContext.getFutureContainer() , (ResponseInputPacket) inputPacket);
 
         }else{
-            Header header = msg.getHeader();
 
             this.executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    dispatcher.handler(connectionContextHolder.getConnectionContext(ctx.channel()), header.getId() , header.getCode() , inputPacket);
+                    protocolHandler.handler(connectionContextHolder.getConnectionContext(ctx.channel()), header.getId() , header.getCode() , inputPacket);
                 }
             });
 
         }
-
     }
+
+
 
 
     @Override

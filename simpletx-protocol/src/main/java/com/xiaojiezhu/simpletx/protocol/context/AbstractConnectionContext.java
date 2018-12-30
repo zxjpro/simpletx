@@ -1,5 +1,7 @@
 package com.xiaojiezhu.simpletx.protocol.context;
 
+import com.xiaojiezhu.simpletx.protocol.context.ConnectionContext;
+import com.xiaojiezhu.simpletx.protocol.context.SimpleMessageSender;
 import io.netty.channel.Channel;
 
 import java.io.IOException;

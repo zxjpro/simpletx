@@ -1,6 +1,5 @@
 package com.xiaojiezhu.simpletx.protocol.context;
 
-import com.xiaojiezhu.simpletx.protocol.message.Message;
 import com.xiaojiezhu.simpletx.util.Constant;
 import io.netty.channel.Channel;
 

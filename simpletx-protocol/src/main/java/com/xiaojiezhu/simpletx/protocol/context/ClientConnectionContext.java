@@ -1,16 +1,8 @@
 package com.xiaojiezhu.simpletx.protocol.context;
 
-import com.xiaojiezhu.simpletx.protocol.client.Connection;
 import com.xiaojiezhu.simpletx.protocol.message.Message;
-import com.xiaojiezhu.simpletx.protocol.message.MessageCreator;
 import com.xiaojiezhu.simpletx.util.Constant;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author xiaojie.zhu

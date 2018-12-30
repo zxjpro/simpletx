@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.protocol.server;
 
+import com.xiaojiezhu.simpletx.protocol.common.AbstractProtocolChannelHandler;
 import com.xiaojiezhu.simpletx.protocol.context.ConnectionContext;
 import com.xiaojiezhu.simpletx.protocol.context.InputPacketManager;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
@@ -10,6 +11,7 @@ import com.xiaojiezhu.simpletx.protocol.message.MessageCreator;
 import com.xiaojiezhu.simpletx.protocol.message.MessageUtil;
 import com.xiaojiezhu.simpletx.protocol.packet.ByteBuffer;
 import com.xiaojiezhu.simpletx.protocol.packet.InputPacket;
+import com.xiaojiezhu.simpletx.protocol.packet.ResponseInputPacket;
 import com.xiaojiezhu.simpletx.protocol.server.event.ConnectionEventListener;
 import com.xiaojiezhu.simpletx.util.StringUtils;
 import io.netty.buffer.ByteBuf;
@@ -23,65 +25,66 @@ import org.slf4j.LoggerFactory;
  * @author xiaojie.zhu
  * time 2018/12/16 22:31
  */
-public class ServerChannelHandler extends SimpleChannelInboundHandler<Message> {
+public class ServerChannelHandler extends AbstractProtocolChannelHandler {
 
     public final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private final ProtocolDispatcher protocolDispatcher;
     private final ServerContext serverContext;
 
     private ConnectionEventListener connectionEventListener;
 
-    private final InputPacketManager inputPacketManager;
 
 
     private boolean first = true;
 
 
-    public ServerChannelHandler(ProtocolDispatcher protocolDispatcher , ServerContext serverContext , InputPacketManager inputPacketManager) {
-        this.protocolDispatcher = protocolDispatcher;
+    public ServerChannelHandler(ProtocolDispatcher protocolDispatcher, ServerContext serverContext, InputPacketManager inputPacketManager) {
+        super(protocolDispatcher , inputPacketManager , serverContext.getExecutor());
         this.serverContext = serverContext;
-        this.inputPacketManager = inputPacketManager;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
-
-        ProtocolHandler dispatcher = this.protocolDispatcher.dispatcher(msg.getHeader().getCode());
-
         ConnectionContext connectionContext = serverContext.getConnectionContext(ctx.channel());
-        if(!first){
-            if(!connectionContext.isAuthorization()){
+        if (!first) {
+            if (!connectionContext.isAuthorization()) {
                 connectionContext.close();
                 throw new RuntimeException("not authorization exception");
             }
         }
 
-        Class<? extends InputPacket> inputPacketClass = this.inputPacketManager.get(dispatcher.getClass());
-        InputPacket inputPacket = inputPacketClass.newInstance();
+        super.channelRead0(ctx , msg);
 
 
-        ByteBuffer byteBuf = new ByteBuffer(Unpooled.wrappedBuffer(msg.getBody()));
-        try {
-            inputPacket.read(byteBuf);
-        } finally {
-            byteBuf.release();
+
+    }
+
+    @Override
+    protected void channelRead1(ChannelHandlerContext ctx, ProtocolHandler protocolHandler, Header header, InputPacket inputPacket) {
+
+        ConnectionContext connectionContext = this.serverContext.getConnectionContext(ctx.channel());
+
+        if(inputPacket instanceof ResponseInputPacket){
+
+            super.invokeCallback(serverContext.getFutureContainer() , (ResponseInputPacket) inputPacket);
+
+        }else{
+
+            try {
+                protocolHandler.handler(connectionContext, header.getId(), header.getCode(), inputPacket);
+            } catch (Throwable e) {
+                connectionContext.sendMessage(new MessageCreator() {
+                    @Override
+                    public Message create(ByteBuf buffer) {
+                        return MessageUtil.createErrorMessage(header.getId(), e.getMessage(), buffer);
+                    }
+                });
+
+                LOG.error(protocolHandler.getClass() + " handler error", e);
+            }
+
         }
 
-        Header header = msg.getHeader();
-
-        try {
-            dispatcher.handler(connectionContext , header.getId() , header.getCode() , inputPacket);
-        } catch (Throwable e) {
-            connectionContext.sendMessage(new MessageCreator() {
-                @Override
-                public Message create(ByteBuf buffer) {
-                    return MessageUtil.createErrorMessage(header.getId() , e.getMessage() , buffer);
-                }
-            });
-
-            LOG.error(dispatcher.getClass() + " handler error" , e);
-        }
     }
 
 
