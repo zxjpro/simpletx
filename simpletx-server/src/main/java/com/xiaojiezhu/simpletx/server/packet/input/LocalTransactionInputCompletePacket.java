@@ -6,12 +6,14 @@ import com.xiaojiezhu.simpletx.protocol.packet.OutputPacket;
 import com.xiaojiezhu.simpletx.protocol.packet.ResponseInputPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * @author xiaojie.zhu
  * time 2018-12-31 19:33
  */
 @AllArgsConstructor
+@NoArgsConstructor
 public class LocalTransactionInputCompletePacket implements ResponseInputPacket {
 
     /**

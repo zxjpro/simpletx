@@ -45,12 +45,12 @@ public class CreateJoinGroupHandler implements ProtocolHandler<CreateJoinGroupIn
         TransactionBlock transactionBlock = new TransactionBlock(transactionBlockInfo, connectionContext);
 
         if(Constant.Client.ProtocolCode.CODE_CREATE_GROUP == code){
-            LOG.debug(StringUtils.str("create transaction group:" , content.getTransactionGroupId()));
+            LOG.debug(StringUtils.str("[" + connectionContext.getAppName() , "]:"," create transaction group:" , content.getTransactionGroupId()));
             serverContext.createTransactionGroup(content.getTransactionGroupId(), transactionBlock);
 
         }else if(Constant.Client.ProtocolCode.CODE_JOIN_GROUP == code){
 
-            LOG.debug(StringUtils.str("join transaction group:" , content.getTransactionGroupId()));
+            LOG.debug(StringUtils.str("[" + connectionContext.getAppName() , "]:", " join transaction group:" , content.getTransactionGroupId()));
             serverContext.joinTransactionGroup(content.getTransactionGroupId() , transactionBlock);
         }else{
             throw new RuntimeException("not support code : " + code);

@@ -9,4 +9,6 @@ public interface BalanceService {
     void addBalance(String userId);
 
     void addBalance2(String userId);
+
+    void addBalance3(String userId);
 }

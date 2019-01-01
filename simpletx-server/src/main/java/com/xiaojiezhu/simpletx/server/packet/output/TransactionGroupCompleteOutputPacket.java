@@ -44,7 +44,7 @@ public class TransactionGroupCompleteOutputPacket implements OutputPacket {
             if(!this.success){
 
                 if(errorNode == null || errorNode.size() == 0){
-                    throw new NullPointerException("when success is true , the error node can not be empty");
+                    throw new NullPointerException("when success is false , the error node can not be empty");
                 }
 
                 byte[] errorBytes = encode(this.errorNode);

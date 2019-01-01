@@ -30,10 +30,4 @@ public interface FutureContainer {
      */
     FutureCondition find(Object id);
 
-    /**
-     * find a future by id , and remove id
-     * @param id
-     * @return
-     */
-    FutureCondition findAndRemove(Object id);
 }

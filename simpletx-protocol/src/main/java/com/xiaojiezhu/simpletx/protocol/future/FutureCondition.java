@@ -25,4 +25,17 @@ public interface FutureCondition {
     boolean await(long time, TimeUnit unit) throws InterruptedException;
 
     void signal();
+
+
+    /**
+     * get the last num
+     * @return
+     */
+    int getNum();
+
+    /**
+     * get the count number
+     * @return
+     */
+    int getCount();
 }

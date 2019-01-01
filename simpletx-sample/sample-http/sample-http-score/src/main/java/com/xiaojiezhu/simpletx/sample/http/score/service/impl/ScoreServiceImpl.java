@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.sample.http.score.service.impl;
 
+import com.xiaojiezhu.simpletx.core.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.sample.common.dao.db.ScoreDao;
 import com.xiaojiezhu.simpletx.sample.common.dao.model.Score;
 import com.xiaojiezhu.simpletx.sample.http.score.service.ScoreService;
@@ -19,6 +20,7 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
+    @TxTransactional
     public void addScore(String userId) {
         Score score = new Score();
         score.setScore(100);

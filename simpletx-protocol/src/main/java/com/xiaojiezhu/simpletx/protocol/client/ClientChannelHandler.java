@@ -35,7 +35,6 @@ public class ClientChannelHandler extends AbstractProtocolChannelHandler {
     @Override
     protected void channelRead1(ChannelHandlerContext ctx, ProtocolHandler protocolHandler ,  Header header, InputPacket inputPacket) {
         if(inputPacket instanceof ResponseInputPacket){
-
             super.invokeCallback(simpletxContext.getFutureContainer() , (ResponseInputPacket) inputPacket);
 
         }else{

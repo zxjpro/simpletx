@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.sample.http.score;
 
+import com.xiaojiezhu.simpletx.client.annotation.EnableSimpletxTransaction;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @MapperScan("com.xiaojiezhu.simpletx.sample.common.dao.db")
 @SpringBootApplication
+@EnableSimpletxTransaction
 public class SampleHttpScoreApp {
 
     public static void main(String[] args) {

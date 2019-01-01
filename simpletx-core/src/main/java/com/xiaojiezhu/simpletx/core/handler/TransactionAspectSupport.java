@@ -17,8 +17,10 @@ import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
 import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupManager;
 import com.xiaojiezhu.simpletx.protocol.client.SimpletxContext;
 import com.xiaojiezhu.simpletx.protocol.future.Future;
+import com.xiaojiezhu.simpletx.protocol.future.FutureCondition;
 import com.xiaojiezhu.simpletx.protocol.future.Futures;
 import com.xiaojiezhu.simpletx.protocol.packet.OkErrorPacket;
+import com.xiaojiezhu.simpletx.util.MessageIdGenerator;
 import com.xiaojiezhu.simpletx.util.bean.Arrays;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -55,7 +57,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
      * TODO: 需要提取为参数
      * 事务的超时时间
      */
-    protected long transactionTimeout = 10000;
+    protected long expireTimeout = 10000;
 
     public final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -173,25 +175,39 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
     private Object invokeJoinTransaction(ProceedingJoinPoint point, TransactionInfo transactionInfo, MethodParameter methodParameter) throws Throwable {
         joinTransactionGroup(transactionInfo, methodParameter);
 
-        Object result = null;
-        Throwable ex = null;
 
-        try {
-            result = point.proceed();
-        } catch (Throwable throwable) {
-            ex = throwable;
-        } finally {
-            SimpletxTransactionUtil.clearThreadResource();
-        }
+
+        final int futureId = MessageIdGenerator.getInstance().next();
+        final Future<MethodResult> future = Futures.createFuture(this.simpletxContext.getFutureContainer(), futureId);
 
         ThreadExecutor threadExecutor = getThreadExecutor();
         threadExecutor.execute(new Runnable() {
             @Override
             public void run() {
 
+                Object result = null;
+                Throwable ex = null;
+                //init status
+                transactionInfo.getStatus();
+                try {
+                    result = point.proceed();
+                } catch (Throwable throwable) {
+                    ex = throwable;
+                } finally {
+                    SimpletxTransactionUtil.clearThreadResource();
+                }
+                FutureCondition futureCondition = simpletxContext.getFutureContainer().find(futureId);
+                futureCondition.setValue(new MethodResult(result , ex));
+
+                futureCondition.signal();
+                if(futureCondition.getNum() <= 0){
+                    simpletxContext.getFutureContainer().remove(futureId);
+                }
+
+
                 Future<CommitRollbackInputPacket> future = Futures.createFuture(simpletxContext.getFutureContainer(), transactionInfo.getTransactionGroupId());
                 try {
-                    future.await(transactionTimeout , TimeUnit.MILLISECONDS);
+                    future.await(expireTimeout, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException | TimeoutException e) {
                     e.printStackTrace();
                     //TODO: 等待simpletx-server的通知超时
@@ -228,11 +244,19 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
             }
         });
 
-        if (ex != null) {
-            throw ex;
+        MethodResult methodResult = null;
+        try {
+            methodResult = future.get();
+        } catch (InterruptedException e) {
+            //这行错误应该不会遇到
+            throw new RuntimeException("target method execute be interrupt!" , e);
         }
 
-        return result;
+        if(methodResult.getThrowable() != null){
+            throw methodResult.getThrowable();
+        }
+
+        return methodResult.getResult();
     }
 
 
@@ -304,7 +328,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
         PlatformTransactionManager tm = determineQualifierTransactionManager(methodAttribute.getTransactionManagerName());
 
-        TransactionStatus transactionStatus = tm.getTransaction(txAttr);
+//        TransactionStatus transactionStatus = tm.getTransaction(txAttr);
 
         //TODO: 其它请求进入时，还没有把transactionGroupId加入到线程变量中
         boolean rootTransaction = false;
@@ -316,7 +340,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
             SimpletxTransactionUtil.setTransactionGroupId(transactionGroupId);
         }
 
-        TransactionInfo transactionInfo = new TransactionInfo(methodAttribute, tm, txAttr, transactionStatus, rootTransaction, transactionGroupId);
+        TransactionInfo transactionInfo = new TransactionInfo(methodAttribute, tm, txAttr, rootTransaction, transactionGroupId);
 
         return transactionInfo;
 
@@ -376,7 +400,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
     private void joinTransactionGroup(TransactionInfo transactionInfo, MethodParameter methodParameter) throws TimeoutException, InterruptedException, SimpletxJoinTransactionGroupException {
         Future<OkErrorPacket> future = getTransactionGroupManager().joinGroup(SimpletxTransactionUtil.getTransactionGroupId(), transactionInfo, methodParameter);
 
-        OkErrorPacket okErrorResult = future.get(this.transactionTimeout, TimeUnit.MILLISECONDS);
+        OkErrorPacket okErrorResult = future.get(this.expireTimeout, TimeUnit.MILLISECONDS);
         if(!okErrorResult.isOk()){
             // join simpletx-server transaction group fail
             throw new SimpletxJoinTransactionGroupException("join simpletx-server transaction group fail : " + okErrorResult.getMessage());
@@ -393,7 +417,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
     private void createTransactionGroup(TransactionInfo transactionInfo, MethodParameter methodParameter) throws TimeoutException, InterruptedException, SimpletxCreateTransactionGroupException {
         Future<OkErrorPacket> future = getTransactionGroupManager().createGroup(SimpletxTransactionUtil.getTransactionGroupId(), transactionInfo, methodParameter);
 
-        OkErrorPacket okErrorResult = future.get(this.transactionTimeout, TimeUnit.MILLISECONDS);
+        OkErrorPacket okErrorResult = future.get(this.expireTimeout, TimeUnit.MILLISECONDS);
         if(!okErrorResult.isOk()){
             // create simpletx-server transaction group fail
             throw new SimpletxCreateTransactionGroupException("create simpletx-server transaction group fail : " + okErrorResult.getMessage());

@@ -29,10 +29,4 @@ public class SimpleFutureContainer implements FutureContainer {
         return this.futureMap.get(id);
     }
 
-    @Override
-    public FutureCondition findAndRemove(Object id) {
-        FutureCondition futureCondition = find(id);
-        this.remove(id);
-        return futureCondition;
-    }
 }

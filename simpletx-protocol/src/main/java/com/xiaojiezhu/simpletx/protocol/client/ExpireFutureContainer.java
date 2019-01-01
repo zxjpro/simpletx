@@ -39,12 +39,6 @@ public class ExpireFutureContainer extends SimpleFutureContainer {
 
 
     @Override
-    public FutureCondition findAndRemove(Object id) {
-        this.SAVE_TIME.remove(id);
-        return super.findAndRemove(id);
-    }
-
-    @Override
     public void remove(Object id) {
         super.remove(id);
         this.SAVE_TIME.remove(id);

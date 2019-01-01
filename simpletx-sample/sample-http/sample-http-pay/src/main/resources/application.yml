@@ -6,3 +6,14 @@ server:
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
+spring:
+  application:
+    name: pay
+
+
+simpletx:
+  server:
+    host: 127.0.0.1
+    port: 10290
+    password: 123
+    maxActive: 10

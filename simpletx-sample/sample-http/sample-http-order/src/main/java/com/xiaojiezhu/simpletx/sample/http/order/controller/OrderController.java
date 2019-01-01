@@ -21,4 +21,10 @@ public class OrderController {
         this.orderService.createOrder(userId);
         return "SUCCESS";
     }
+
+    @RequestMapping("/create_2")
+    public String createOrder2(@RequestParam("userId") String userId) throws IOException {
+        this.orderService.createOrder2(userId);
+        return "SUCCESS2";
+    }
 }

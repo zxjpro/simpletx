@@ -67,7 +67,7 @@ public class GlobalCommitRollbackHandler implements ProtocolHandler<GlobalCommit
 
 
         if(notifyNodeSize == 0){
-            LOG.warn(StringUtils.str("transaction group [ ", transactionGroup.getTransactionId(), " ] just one transaction node , if there is only one forever,",
+            LOG.warn(StringUtils.str("transaction group [ ", transactionGroup.getTransactionId(), " ] just one transaction node [", connectionContext.getAppName(),"] , if there is only one forever,",
                     "use local transaction will be greater performance to simpletx-transaction"));
 
         }else{
@@ -92,6 +92,8 @@ public class GlobalCommitRollbackHandler implements ProtocolHandler<GlobalCommit
                         buffer , packet);
             }
         });
+
+        serverContext.removeTransactionGroup(transactionGroup.getTransactionId());
 
 
     }
@@ -127,8 +129,10 @@ public class GlobalCommitRollbackHandler implements ProtocolHandler<GlobalCommit
 
 
     private List<Node> getSuccessNode(List<LocalTransactionInputCompletePacket> packets){
+        if(packets == null || packets.size() == 0){
+            return null;
+        }
         List<Node> nodes = new ArrayList<>();
-
         for (LocalTransactionInputCompletePacket packet : packets) {
             if(packet.isSuccess()){
                 nodes.add(new Node(packet.getAppName() , packet.getAppid()));

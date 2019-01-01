@@ -14,6 +14,11 @@ public class Constant {
     public static final String AUTHOR = "simpletx.author";
     public static final String AUTHOR_INFO = "zhu.xiaojie";
 
+    /**
+     * the request api enter transaction group id
+     */
+    public static final String SIMPLETX_ENTER_HEADER = "simpletx.transaction.group.id";
+
 
     //============================Server start================================
     public static class Server {

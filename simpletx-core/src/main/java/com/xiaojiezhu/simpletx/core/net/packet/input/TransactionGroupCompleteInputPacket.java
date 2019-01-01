@@ -2,6 +2,7 @@ package com.xiaojiezhu.simpletx.core.net.packet.input;
 
 import com.xiaojiezhu.simpletx.common.codec.ObjectCodec;
 import com.xiaojiezhu.simpletx.common.node.Node;
+import com.xiaojiezhu.simpletx.core.info.SimpletxTransactionUtil;
 import com.xiaojiezhu.simpletx.protocol.packet.ByteBuffer;
 import com.xiaojiezhu.simpletx.protocol.packet.ResponseInputPacket;
 import lombok.AllArgsConstructor;
@@ -16,8 +17,6 @@ import java.util.List;
  * @author xiaojie.zhu
  * time 2018-12-31 20:32
  */
-@AllArgsConstructor
-@NoArgsConstructor
 public class TransactionGroupCompleteInputPacket implements ResponseInputPacket {
 
     private ObjectCodec objectCodec;
@@ -32,6 +31,10 @@ public class TransactionGroupCompleteInputPacket implements ResponseInputPacket 
     @Getter
     private List<Node> errorNode;
 
+
+    public TransactionGroupCompleteInputPacket() {
+        this.objectCodec = SimpletxTransactionUtil.getObjectCodec();
+    }
 
     public TransactionGroupCompleteInputPacket(ObjectCodec objectCodec) {
         this.objectCodec = objectCodec;

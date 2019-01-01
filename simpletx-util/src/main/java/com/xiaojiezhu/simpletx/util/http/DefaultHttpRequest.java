@@ -70,6 +70,10 @@ class DefaultHttpRequest implements HttpRequest{
         }
         this.conn.setDoInput(true);
 
+        if(this.builder.getHeaderHandler() != null){
+            this.builder.getHeaderHandler().handler(this.builder.getHeaderManager());
+        }
+
         if(this.builder.getHeaderManager() != null){
             Iterator<Map.Entry<String, String>> iterator = this.builder.getHeaderManager().getHeaders().entrySet().iterator();
             while (iterator.hasNext()){

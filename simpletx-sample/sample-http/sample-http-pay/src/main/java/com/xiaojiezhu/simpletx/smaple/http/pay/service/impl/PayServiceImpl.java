@@ -1,7 +1,9 @@
 package com.xiaojiezhu.simpletx.smaple.http.pay.service.impl;
 
+import com.xiaojiezhu.simpletx.core.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.smaple.http.pay.service.PayService;
 import com.xiaojiezhu.simpletx.util.http.HttpClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -13,13 +15,16 @@ import java.io.IOException;
 @Service
 public class PayServiceImpl implements PayService {
 
+    @Autowired
+    private HttpClient httpClient;
+
 
     @Override
+    @TxTransactional
     public void pay(String userId) throws IOException {
-        HttpClient httpClient = new HttpClient();
 
         //余额
-        String r1 = httpClient.builder().url("http://localhost:8083/balance/addBalance").addParameter("userId", userId).build().request();
+        String r1 = httpClient.builder().url("http://localhost:8083/balance/addBalance2").addParameter("userId", userId).build().request();
 
         //积分
         String r2 = httpClient.builder().url("http://localhost:8084/score/addScore").addParameter("userId", userId).build().request();

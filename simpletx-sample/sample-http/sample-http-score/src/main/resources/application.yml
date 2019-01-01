@@ -8,8 +8,17 @@ spring:
     url: "jdbc:mysql://127.0.0.1:3306/market?useUnicode=true&characterEncoding=utf8&useSSL=false"
     username: root
     password: 123456
+  application:
+    name: score
 
 
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
+
+simpletx:
+  server:
+    host: 127.0.0.1
+    port: 10290
+    password: 123
+    maxActive: 10

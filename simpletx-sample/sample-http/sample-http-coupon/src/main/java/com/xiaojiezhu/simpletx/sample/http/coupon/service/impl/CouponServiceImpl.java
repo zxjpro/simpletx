@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.sample.http.coupon.service.impl;
 
+import com.xiaojiezhu.simpletx.core.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.sample.common.dao.db.CouponDao;
 import com.xiaojiezhu.simpletx.sample.common.dao.model.Coupon;
 import com.xiaojiezhu.simpletx.sample.http.coupon.service.CouponService;
@@ -18,6 +19,7 @@ public class CouponServiceImpl implements CouponService {
         this.couponDao = couponDao;
     }
 
+    @TxTransactional
     @Override
     public void addCoupon(String userId) {
         Coupon coupon = new Coupon();
@@ -25,5 +27,8 @@ public class CouponServiceImpl implements CouponService {
         coupon.setUserId(userId);
 
         couponDao.insertCoupon(coupon);
+
+        //执行25次以后，就开始阻塞
+        //int i = 1 / 0;
     }
 }

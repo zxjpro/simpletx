@@ -23,9 +23,13 @@ public class LocalCommitRollbackHandler implements ProtocolHandler<CommitRollbac
 
         FutureContainer futureContainer = simpletxContext.getFutureContainer();
 
-        FutureCondition futureCondition = futureContainer.findAndRemove(content.getTransactionGroupId());
+        FutureCondition futureCondition = futureContainer.find(content.getTransactionGroupId());
 
         futureCondition.setValue(content);
         futureCondition.signal();
+
+        if(futureCondition.getNum() <= 0){
+            futureContainer.remove(content.getTransactionGroupId());
+        }
     }
 }

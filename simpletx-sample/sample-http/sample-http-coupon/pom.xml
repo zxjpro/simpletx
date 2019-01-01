@@ -19,6 +19,17 @@
             <artifactId>sample-common-dao</artifactId>
         </dependency>
 
+
+        <dependency>
+            <groupId>com.xiaojiezhu.simpletx</groupId>
+            <artifactId>simpletx-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
+
     </dependencies>
 
 

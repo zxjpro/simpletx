@@ -4,12 +4,10 @@ import com.xiaojiezhu.simpletx.core.exception.SimpletxCommitException;
 import com.xiaojiezhu.simpletx.core.exception.SimpletxRollbackException;
 import com.xiaojiezhu.simpletx.core.info.SimpletxTransactionUtil;
 import com.xiaojiezhu.simpletx.core.info.TransactionMethodAttribute;
-import com.xiaojiezhu.simpletx.core.net.OkErrorResult;
 import com.xiaojiezhu.simpletx.core.net.packet.input.TransactionGroupCompleteInputPacket;
 import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
 import com.xiaojiezhu.simpletx.protocol.client.SimpletxContext;
 import com.xiaojiezhu.simpletx.protocol.future.Future;
-import com.xiaojiezhu.simpletx.protocol.packet.OkErrorPacket;
 import com.xiaojiezhu.simpletx.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +42,7 @@ public class TransactionInterceptor extends TransactionAspectSupport {
             boolean remoteSuccess = false;
 
             try {
-                future.await(transactionTimeout, TimeUnit.MILLISECONDS);
+                future.await(expireTimeout, TimeUnit.MILLISECONDS);
                 remoteSuccess = true;
             } catch (InterruptedException | TimeoutException e) {
                 e.printStackTrace();
@@ -101,7 +99,7 @@ public class TransactionInterceptor extends TransactionAspectSupport {
                 boolean remoteSuccess = false;
 
                 try {
-                    future.await(transactionTimeout , TimeUnit.MILLISECONDS);
+                    future.await(expireTimeout, TimeUnit.MILLISECONDS);
                     remoteSuccess = true;
                 } catch (InterruptedException | TimeoutException e) {
                     e.printStackTrace();

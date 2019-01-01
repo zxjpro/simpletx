@@ -6,4 +6,6 @@ public interface OrderService {
 
 
     void createOrder(String userId) throws IOException;
+
+    void createOrder2(String userId) throws IOException;
 }

@@ -28,6 +28,8 @@ class CountFutureCondition implements FutureCondition{
 
     private final AtomicInteger num;
 
+    private final int count;
+
     public CountFutureCondition(Object id) {
         this(id , 1);
     }
@@ -35,6 +37,7 @@ class CountFutureCondition implements FutureCondition{
     public CountFutureCondition(Object id , int num) {
         this.id = id;
         this.num = new AtomicInteger(num);
+        this.count = num;
     }
 
     private Object value;
@@ -54,7 +57,17 @@ class CountFutureCondition implements FutureCondition{
         }
 
 
+    }
 
+
+    @Override
+    public int getNum(){
+        return this.num.get();
+    }
+
+    @Override
+    public int getCount() {
+        return this.count;
     }
 
     @Override
@@ -88,11 +101,18 @@ class CountFutureCondition implements FutureCondition{
 
             this.lock.lock();
 
-            try {
-                this.condition.signalAll();
-            } finally {
-                this.lock.unlock();
+            int waitQueueLength = lock.getWaitQueueLength(this.condition);
+            if(waitQueueLength > 0){
+                try {
+                    this.condition.signalAll();
+                } finally {
+                    this.lock.unlock();
+                }
+            }else{
+                //如果这里出现异常，则使用自旋锁解决
+                throw new RuntimeException("condition not has wait thread");
             }
+
 
         }
 

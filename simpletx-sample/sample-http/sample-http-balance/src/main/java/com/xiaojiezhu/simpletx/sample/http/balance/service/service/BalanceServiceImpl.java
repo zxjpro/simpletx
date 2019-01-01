@@ -43,4 +43,10 @@ public class BalanceServiceImpl implements BalanceService {
 
     }
 
+    @TxTransactional
+    @Override
+    public void addBalance3(String userId) {
+        System.out.println("hello world");
+    }
+
 }
