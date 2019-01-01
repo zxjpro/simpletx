@@ -1,4 +1,4 @@
-package com.xiaojiezhu.simpletx.common.annotation;
+package com.xiaojiezhu.simpletx.core.annotation;
 
 
 import com.xiaojiezhu.simpletx.common.define.Propagation;

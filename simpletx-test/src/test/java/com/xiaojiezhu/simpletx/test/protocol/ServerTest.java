@@ -10,7 +10,7 @@ import com.xiaojiezhu.simpletx.protocol.server.Server;
 public class ServerTest {
 
     public static void main(String[] args) throws Exception {
-        Server server = new DefaultServer(8888 );
+        Server server = new DefaultServer("0.0.0.0" ,10290);
 
         server.start();
     }

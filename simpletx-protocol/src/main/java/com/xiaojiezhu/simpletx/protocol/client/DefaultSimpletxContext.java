@@ -3,6 +3,7 @@ package com.xiaojiezhu.simpletx.protocol.client;
 import com.xiaojiezhu.simpletx.protocol.context.ConnectionContextHolder;
 import com.xiaojiezhu.simpletx.protocol.context.DefaultConnectionContextHolder;
 import com.xiaojiezhu.simpletx.protocol.context.InputPacketManager;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.util.concurrent.Executor;
@@ -18,6 +19,14 @@ public class DefaultSimpletxContext implements SimpletxContext {
     private InputPacketManager inputPacketManager;
     @Setter
     private Executor executor;
+
+    @Getter
+    @Setter
+    private String appName;
+
+    @Getter
+    @Setter
+    private String appid;
 
 
     @Setter

@@ -1,6 +1,6 @@
 package com.xiaojiezhu.simpletx.sample.http.balance.service.service;
 
-import com.xiaojiezhu.simpletx.common.annotation.TxTransactional;
+import com.xiaojiezhu.simpletx.core.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.sample.common.dao.db.BalanceDao;
 import com.xiaojiezhu.simpletx.sample.common.dao.model.Balance;
 import com.xiaojiezhu.simpletx.sample.http.balance.service.BalanceService;
@@ -39,7 +39,7 @@ public class BalanceServiceImpl implements BalanceService {
 
         balanceDao.insertBalance(balance);
 
-        int i = 1 / 0;
+//        int i = 1 / 0;
 
     }
 

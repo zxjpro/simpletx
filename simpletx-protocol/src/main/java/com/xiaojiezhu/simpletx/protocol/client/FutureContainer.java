@@ -1,6 +1,6 @@
 package com.xiaojiezhu.simpletx.protocol.client;
 
-import com.xiaojiezhu.simpletx.protocol.future.Future;
+
 import com.xiaojiezhu.simpletx.protocol.future.FutureCondition;
 
 /**
@@ -15,18 +15,25 @@ public interface FutureContainer {
      * @param id
      * @param futureCondition
      */
-    void add(int id , FutureCondition futureCondition);
+    void add(Object id , FutureCondition futureCondition);
 
     /**
      * remove a future
      * @param id
      */
-    void remove(int id);
+    void remove(Object id);
 
     /**
      * find a future by id
      * @param id
      * @return
      */
-    FutureCondition find(int id);
+    FutureCondition find(Object id);
+
+    /**
+     * find a future by id , and remove id
+     * @param id
+     * @return
+     */
+    FutureCondition findAndRemove(Object id);
 }

@@ -1,6 +1,7 @@
 package com.xiaojiezhu.simpletx.protocol.server;
 
 import com.xiaojiezhu.simpletx.protocol.EventLoopGroupUtil;
+import com.xiaojiezhu.simpletx.protocol.client.ExpireFutureContainer;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
 import com.xiaojiezhu.simpletx.protocol.server.event.ConnectionEventListener;
 import io.netty.bootstrap.ServerBootstrap;
@@ -14,6 +15,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Executor;
 
 /**
  * @author xiaojie.zhu
@@ -39,15 +42,11 @@ public class DefaultServer implements Server{
 
     private boolean started;
 
-    public DefaultServer(int port) {
-        this("0.0.0.0" , port);
-    }
 
-    public DefaultServer(String host, int port ) {
+
+    public DefaultServer(String host , int port){
         this.host = host;
         this.port = port;
-        DefaultServerContext defaultServerContext = new DefaultServerContext();
-
     }
 
     @Override
@@ -113,6 +112,14 @@ public class DefaultServer implements Server{
     private void check(){
         if(isRunning()){
             throw new RuntimeException("this server is running");
+        }
+
+        if(host == null){
+            throw new NullPointerException("host not set");
+        }
+
+        if(serverContext == null){
+            throw new NullPointerException("serverContext not set");
         }
     }
 

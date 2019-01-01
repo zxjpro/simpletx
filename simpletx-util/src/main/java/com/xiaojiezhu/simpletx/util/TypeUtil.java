@@ -96,6 +96,9 @@ public class TypeUtil {
             return (T) d;
         }else if(t == String.class){
             return (T) value;
+        }else if(t == Long.class || t == long.class){
+            Long l = Long.parseLong(value);
+            return (T) l;
         }else{
             throw new RuntimeException("not support type : " + t);
         }

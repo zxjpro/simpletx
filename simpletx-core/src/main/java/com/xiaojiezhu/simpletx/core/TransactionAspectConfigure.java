@@ -1,28 +1,15 @@
 package com.xiaojiezhu.simpletx.core;
 
-import com.xiaojiezhu.simpletx.common.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.core.handler.TransactionAspectSupport;
-import com.xiaojiezhu.simpletx.util.bean.Arrays;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Role;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author xiaojie.zhu
@@ -39,7 +26,7 @@ public class TransactionAspectConfigure implements InitializingBean {
         this.transactionAspectSupport = transactionAspectSupport;
     }
 
-    @Pointcut("@annotation(com.xiaojiezhu.simpletx.common.annotation.TxTransactional)")
+    @Pointcut("@annotation(com.xiaojiezhu.simpletx.core.annotation.TxTransactional)")
     public void txPoint(){}
 
 

@@ -1,17 +1,24 @@
 package com.xiaojiezhu.simpletx.core.handler;
 
 import com.xiaojiezhu.simpletx.common.TransactionGroupFactory;
-import com.xiaojiezhu.simpletx.common.annotation.TxTransactional;
+import com.xiaojiezhu.simpletx.core.annotation.TxTransactional;
 import com.xiaojiezhu.simpletx.common.define.Propagation;
 import com.xiaojiezhu.simpletx.common.executor.ThreadExecutor;
 import com.xiaojiezhu.simpletx.common.parameter.MethodParameter;
 import com.xiaojiezhu.simpletx.core.exception.SimpletxCommitException;
+import com.xiaojiezhu.simpletx.core.exception.SimpletxCreateTransactionGroupException;
+import com.xiaojiezhu.simpletx.core.exception.SimpletxJoinTransactionGroupException;
 import com.xiaojiezhu.simpletx.core.exception.SimpletxRollbackException;
 import com.xiaojiezhu.simpletx.core.info.SimpleTransactionMethodAttribute;
 import com.xiaojiezhu.simpletx.core.info.SimpletxTransactionUtil;
 import com.xiaojiezhu.simpletx.core.info.TransactionMethodAttribute;
+import com.xiaojiezhu.simpletx.core.net.packet.input.CommitRollbackInputPacket;
 import com.xiaojiezhu.simpletx.core.transaction.TransactionInfo;
 import com.xiaojiezhu.simpletx.core.transaction.manager.TransactionGroupManager;
+import com.xiaojiezhu.simpletx.protocol.client.SimpletxContext;
+import com.xiaojiezhu.simpletx.protocol.future.Future;
+import com.xiaojiezhu.simpletx.protocol.future.Futures;
+import com.xiaojiezhu.simpletx.protocol.packet.OkErrorPacket;
 import com.xiaojiezhu.simpletx.util.bean.Arrays;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -34,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -65,14 +73,20 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
     private ThreadExecutor threadExecutor;
 
+    private final SimpletxContext simpletxContext;
 
     private final ConcurrentReferenceHashMap<Object, PlatformTransactionManager> transactionManagerCache =
             new ConcurrentReferenceHashMap<>(1);
 
     public static final String DEFAULT_TRANSACTION_MANAGER_NAME = "DEFAULT_TRANSACTION_MANAGER";
 
-    public TransactionAspectSupport() {
+
+    public TransactionAspectSupport(SimpletxContext simpletxContext) {
+        this.simpletxContext = simpletxContext;
     }
+
+
+
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -86,7 +100,7 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
      */
     protected final ThreadExecutor getThreadExecutor() {
         if (this.threadExecutor == null) {
-            synchronized (getClass()) {
+            synchronized (this) {
                 if (this.threadExecutor == null) {
                     this.threadExecutor = this.beanFactory.getBean(ThreadExecutor.class);
                 }
@@ -109,7 +123,6 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
                 }
             }
         }
-
         return this.transactionGroupManager;
     }
 
@@ -133,73 +146,15 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
             return this.runWithoutTransaction(point);
         }
 
-        MethodParameter methodParameter = new MethodParameter();
-        methodParameter.setArgs(point.getArgs());
-        methodParameter.setBeanName(transactionMethodAttribute.getCurrentBeanName());
-        methodParameter.setClassName(transactionMethodAttribute.getTarget().getClass().getName());
-        methodParameter.setMethodName(transactionMethodAttribute.getMethod().getName());
+        MethodParameter methodParameter = createMethodParameter(point, transactionMethodAttribute);
 
         if (transactionInfo.isRootTransaction()) {
-            getTransactionGroupManager().createGroup(SimpletxTransactionUtil.getTransactionGroupId() , transactionInfo, methodParameter);
 
-            Object result;
-            try {
-                result = point.proceed();
+            return invokeRootTransaction(point, transactionInfo, methodParameter);
 
-            } catch (Throwable throwable) {
-                runAfterThrowable(transactionInfo, throwable);
-                throw throwable;
-
-            } finally {
-                SimpletxTransactionUtil.clearThreadResource();
-            }
-
-            runAfterSuccess(transactionInfo);
-
-            return result;
         } else {
             // join transaction
-            getTransactionGroupManager().joinGroup(SimpletxTransactionUtil.getTransactionGroupId() , transactionInfo, methodParameter);
-
-            Object result = null;
-            Throwable ex = null;
-
-            try {
-                result = point.proceed();
-            } catch (Throwable throwable) {
-                ex = throwable;
-            } finally {
-                SimpletxTransactionUtil.clearThreadResource();
-            }
-
-
-            final Runnable commitRunnable = createCommit(transactionInfo);
-            final Runnable rollbackRunnable = createRollback(transactionInfo);
-
-            ThreadExecutor threadExecutor = getThreadExecutor();
-            threadExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    TransactionInvokeFuture invokeFuture = new TransactionInvokeFuture(commitRunnable, rollbackRunnable,
-                            transactionInfo.getTransactionGroupId(), transactionMethodAttribute.getTimeout());
-
-                    try {
-                        invokeFuture.start();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        //TODO: 等待被中止
-                    } catch (TimeoutException e) {
-                        e.printStackTrace();
-                        //TODO: 等待超时
-                    }
-                }
-            });
-
-            if (ex != null) {
-                throw ex;
-            }
-
-            return result;
+            return invokeJoinTransaction(point, transactionInfo, methodParameter);
 
         }
 
@@ -207,35 +162,119 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
     }
 
-    protected Runnable createCommit(TransactionInfo transactionInfo) {
-        final Runnable commitRunnable = new Runnable() {
+    /**
+     * invoke join transaction
+     * @param point
+     * @param transactionInfo
+     * @param methodParameter
+     * @return
+     * @throws Throwable
+     */
+    private Object invokeJoinTransaction(ProceedingJoinPoint point, TransactionInfo transactionInfo, MethodParameter methodParameter) throws Throwable {
+        joinTransactionGroup(transactionInfo, methodParameter);
+
+        Object result = null;
+        Throwable ex = null;
+
+        try {
+            result = point.proceed();
+        } catch (Throwable throwable) {
+            ex = throwable;
+        } finally {
+            SimpletxTransactionUtil.clearThreadResource();
+        }
+
+        ThreadExecutor threadExecutor = getThreadExecutor();
+        threadExecutor.execute(new Runnable() {
             @Override
             public void run() {
+
+                Future<CommitRollbackInputPacket> future = Futures.createFuture(simpletxContext.getFutureContainer(), transactionInfo.getTransactionGroupId());
                 try {
-                    runAfterSuccess(transactionInfo);
-                } catch (SimpletxCommitException e) {
+                    future.await(transactionTimeout , TimeUnit.MILLISECONDS);
+                } catch (InterruptedException | TimeoutException e) {
                     e.printStackTrace();
-                    //TODO：处理提交事务失败的异常
+                    //TODO: 等待simpletx-server的通知超时
                 }
+
+                CommitRollbackInputPacket packet = future.getNow();
+                Throwable t = null;
+                long startTime = System.currentTimeMillis();
+                if(packet.isCommit()){
+                    LOG.info("receive simpletx-server command to commit local transaction  , transaction group id : " + transactionInfo.getTransactionGroupId());
+                    try {
+                        runAfterSuccess(transactionInfo);
+                    } catch (Throwable e) {
+                        t = e;
+                        e.printStackTrace();
+                        //TODO: 本地事务提交失败
+                    }
+                }else{
+                    LOG.info("receive simpletx-server command to rollback local transaction  , transaction group id : " + transactionInfo.getTransactionGroupId());
+                    try {
+                        runAfterThrowable(transactionInfo , null);
+                    } catch (Throwable e) {
+                        t = e;
+                        e.printStackTrace();
+                        //TODO: 本地事务回滚失败
+                    }
+                }
+
+                long endTime = System.currentTimeMillis();
+                long useTime = endTime - startTime;
+                getTransactionGroupManager().notifyLocalTransactionComplete(packet.isCommit() , t == null , packet.getMessageId() ,useTime);
+
+
             }
-        };
-        return commitRunnable;
+        });
+
+        if (ex != null) {
+            throw ex;
+        }
+
+        return result;
     }
 
-    protected Runnable createRollback(TransactionInfo transactionInfo) {
-        final Runnable rollbackRunnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    runAfterThrowable(transactionInfo, null);
-                } catch (SimpletxRollbackException e) {
-                    e.printStackTrace();
-                    //TODO: 处理回滚事务失败的异常
-                }
-            }
-        };
-        return rollbackRunnable;
+
+    /**
+     * invoke root transaction
+     * @param point
+     * @param transactionInfo
+     * @param methodParameter
+     * @return
+     * @throws Throwable
+     */
+    private Object invokeRootTransaction(ProceedingJoinPoint point, TransactionInfo transactionInfo, MethodParameter methodParameter) throws Throwable {
+        createTransactionGroup(transactionInfo, methodParameter);
+
+        Object result;
+        try {
+            result = point.proceed();
+
+        } catch (Throwable throwable) {
+            runAfterThrowable(transactionInfo, throwable);
+            throw throwable;
+
+        } finally {
+            SimpletxTransactionUtil.clearThreadResource();
+        }
+
+        runAfterSuccess(transactionInfo);
+
+        return result;
     }
+
+
+
+    private MethodParameter createMethodParameter(ProceedingJoinPoint point, TransactionMethodAttribute transactionMethodAttribute) {
+        MethodParameter methodParameter = new MethodParameter();
+        methodParameter.setArgs(point.getArgs());
+        methodParameter.setBeanName(transactionMethodAttribute.getCurrentBeanName());
+        methodParameter.setClassName(transactionMethodAttribute.getTarget().getClass().getName());
+        methodParameter.setMethodName(transactionMethodAttribute.getMethod().getName());
+        return methodParameter;
+    }
+
 
     /**
      * run target method with success
@@ -283,6 +322,12 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
     }
 
+    /**
+     * run without transaction
+     * @param point
+     * @return
+     * @throws Throwable
+     */
     private Object runWithoutTransaction(ProceedingJoinPoint point) throws Throwable {
         Object proceed = point.proceed();
         return proceed;
@@ -320,6 +365,40 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
         }
         return platformTransactionManager;
+    }
+
+
+    /**
+     * join transaction group , wait to server response success ,  if join fail , it will throw exception
+     * @param transactionInfo
+     * @param methodParameter
+     */
+    private void joinTransactionGroup(TransactionInfo transactionInfo, MethodParameter methodParameter) throws TimeoutException, InterruptedException, SimpletxJoinTransactionGroupException {
+        Future<OkErrorPacket> future = getTransactionGroupManager().joinGroup(SimpletxTransactionUtil.getTransactionGroupId(), transactionInfo, methodParameter);
+
+        OkErrorPacket okErrorResult = future.get(this.transactionTimeout, TimeUnit.MILLISECONDS);
+        if(!okErrorResult.isOk()){
+            // join simpletx-server transaction group fail
+            throw new SimpletxJoinTransactionGroupException("join simpletx-server transaction group fail : " + okErrorResult.getMessage());
+        }
+
+
+    }
+
+    /**
+     * create transaction group , wait to server response success , if create fail , it will throw exception
+     * @param transactionInfo
+     * @param methodParameter
+     */
+    private void createTransactionGroup(TransactionInfo transactionInfo, MethodParameter methodParameter) throws TimeoutException, InterruptedException, SimpletxCreateTransactionGroupException {
+        Future<OkErrorPacket> future = getTransactionGroupManager().createGroup(SimpletxTransactionUtil.getTransactionGroupId(), transactionInfo, methodParameter);
+
+        OkErrorPacket okErrorResult = future.get(this.transactionTimeout, TimeUnit.MILLISECONDS);
+        if(!okErrorResult.isOk()){
+            // create simpletx-server transaction group fail
+            throw new SimpletxCreateTransactionGroupException("create simpletx-server transaction group fail : " + okErrorResult.getMessage());
+        }
+
     }
 
 
@@ -390,5 +469,10 @@ public abstract class TransactionAspectSupport implements InitializingBean, Bean
 
     public void setTransactionAttributeSource(TransactionAttributeSource transactionAttributeSource) {
         this.tas = transactionAttributeSource;
+    }
+
+
+    protected final SimpletxContext getSimpletxContext(){
+        return this.simpletxContext;
     }
 }

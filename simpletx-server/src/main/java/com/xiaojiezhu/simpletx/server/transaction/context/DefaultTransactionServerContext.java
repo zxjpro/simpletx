@@ -1,5 +1,6 @@
 package com.xiaojiezhu.simpletx.server.transaction.context;
 
+import com.xiaojiezhu.simpletx.protocol.client.FutureContainer;
 import com.xiaojiezhu.simpletx.protocol.server.DefaultServerContext;
 import com.xiaojiezhu.simpletx.server.transaction.DefaultTransactionGroup;
 import com.xiaojiezhu.simpletx.server.transaction.TransactionBlock;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 
 /**
  * @author xiaojie.zhu
@@ -21,7 +23,8 @@ public class DefaultTransactionServerContext extends DefaultServerContext implem
 
 
 
-    public DefaultTransactionServerContext() {
+    public DefaultTransactionServerContext(Executor executor , FutureContainer futureContainer) {
+        super(executor , futureContainer);
         Thread thread = new Thread(new CleanTool());
         thread.setName(getClass().getSimpleName() + "#cleanTool");
         thread.start();

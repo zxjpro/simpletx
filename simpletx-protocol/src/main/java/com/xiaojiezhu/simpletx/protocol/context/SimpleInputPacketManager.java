@@ -1,6 +1,7 @@
 package com.xiaojiezhu.simpletx.protocol.context;
 
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolHandler;
+import com.xiaojiezhu.simpletx.protocol.dispatcher.SimpleProtocolHandler;
 import com.xiaojiezhu.simpletx.protocol.exception.SyntaxRuntimeException;
 import com.xiaojiezhu.simpletx.protocol.packet.InputPacket;
 
@@ -50,7 +51,7 @@ public class SimpleInputPacketManager implements InputPacketManager {
             Class<?> clazz = findClassByType(type);
 
 
-            if(ProtocolHandler.class == clazz){
+            if(ProtocolHandler.class == clazz || SimpleProtocolHandler.class == clazz){
                 Type[] types = ((ParameterizedType) type).getActualTypeArguments();
                 if(types == null || types.length == 0){
                     throw new SyntaxRuntimeException(type.toString() + " not has genericity");

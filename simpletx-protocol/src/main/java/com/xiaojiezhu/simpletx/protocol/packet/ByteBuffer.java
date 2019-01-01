@@ -1001,4 +1001,22 @@ public class ByteBuffer extends ByteBuf {
     public boolean release(int decrement) {
         return byteBuf.release(decrement);
     }
+
+    public void writeLengthBytes(byte[] bytes){
+        if(bytes == null || bytes.length == 0){
+            throw new NullPointerException("bytes can not be empty");
+        }
+
+        int len = bytes.length;
+        this.byteBuf.writeMedium(len);
+        this.writeBytes(bytes);
+
+    }
+
+    public byte[] readLengthBytes(){
+        int len = byteBuf.readMedium();
+        byte[] buf = new byte[len];
+        this.byteBuf.readBytes(buf);
+        return buf;
+    }
 }

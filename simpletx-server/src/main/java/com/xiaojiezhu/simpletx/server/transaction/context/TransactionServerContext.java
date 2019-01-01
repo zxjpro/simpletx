@@ -1,6 +1,7 @@
 package com.xiaojiezhu.simpletx.server.transaction.context;
 
 import com.xiaojiezhu.simpletx.protocol.server.ServerContext;
+import com.xiaojiezhu.simpletx.server.config.SimpletxConfig;
 import com.xiaojiezhu.simpletx.server.transaction.TransactionBlock;
 import com.xiaojiezhu.simpletx.server.transaction.TransactionGroup;
 
@@ -42,4 +43,5 @@ public interface TransactionServerContext extends ServerContext {
      * @return
      */
     int transactionGroupSize();
+
 }

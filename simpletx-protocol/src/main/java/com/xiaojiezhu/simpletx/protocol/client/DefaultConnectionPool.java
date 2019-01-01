@@ -54,7 +54,7 @@ public class DefaultConnectionPool implements ConnectionPool {
 
     @Getter
     @Setter
-    private String appId;
+    private String appid;
 
     private FixedChannelPool pool;
 
@@ -64,7 +64,6 @@ public class DefaultConnectionPool implements ConnectionPool {
     @Getter
     private Executor userExecutor;
 
-    @Setter
     private SimpletxContext simpletxContext;
 
     private final InputPacketManager inputPacketManager = new SimpleInputPacketManager();
@@ -83,8 +82,15 @@ public class DefaultConnectionPool implements ConnectionPool {
         return this.simpletxContext;
     }
 
+
     @Override
     public void start() {
+        if(this.appName == null){
+            throw new NullPointerException("appName not set");
+        }
+        if(this.appid == null){
+            throw new NullPointerException("appid not set");
+        }
 
         synchronized (this){
             if(this.start){
@@ -94,6 +100,8 @@ public class DefaultConnectionPool implements ConnectionPool {
 
             if(this.simpletxContext == null){
                 this.simpletxContext = new DefaultSimpletxContext();
+                ((DefaultSimpletxContext) this.simpletxContext).setAppName(this.appName);
+                ((DefaultSimpletxContext) this.simpletxContext).setAppid(this.appid);
                 ((DefaultSimpletxContext) this.simpletxContext).setExecutor(this.userExecutor);
                 ((DefaultSimpletxContext) this.simpletxContext).setInputPacketManager(this.inputPacketManager);
             }

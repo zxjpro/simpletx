@@ -1,8 +1,12 @@
 package com.xiaojiezhu.simpletx.client.util;
 
 import com.xiaojiezhu.simpletx.client.configuration.SimpletxServerProperties;
-import com.xiaojiezhu.simpletx.client.net.LoginHandler;
-import com.xiaojiezhu.simpletx.client.net.OkErrorHandler;
+import com.xiaojiezhu.simpletx.client.net.handler.LocalCommitRollbackHandler;
+import com.xiaojiezhu.simpletx.client.net.handler.LoginHandler;
+import com.xiaojiezhu.simpletx.core.net.packet.input.TransactionGroupCompleteInputPacket;
+import com.xiaojiezhu.simpletx.core.net.packet.output.LocalTransactionOutputCompletePacket;
+import com.xiaojiezhu.simpletx.protocol.dispatcher.SimpleProtocolHandler;
+import com.xiaojiezhu.simpletx.protocol.packet.input.OkErrorHandler;
 import com.xiaojiezhu.simpletx.protocol.client.SimpletxContext;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.DefaultProtocolDispatcher;
 import com.xiaojiezhu.simpletx.protocol.dispatcher.ProtocolDispatcher;
@@ -27,7 +31,13 @@ public class DispatcherHelper {
         //random auth key
         protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_AUTH_KEY, new LoginHandler(this.simpletxContext , this.appName, this.appid, properties.getPassword()));
 
-        protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_OK_ERROR , new OkErrorHandler(this.simpletxContext));
+        protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_OK_ERROR, new OkErrorHandler());
+
+        protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_NOTIFY_COMMIT , new LocalCommitRollbackHandler(this.simpletxContext));
+        protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_NOTIFY_ROLLBACK, new LocalCommitRollbackHandler(this.simpletxContext));
+
+        //
+        protocolDispatcher.register(Constant.Server.ProtocolCode.CODE_TRANSACTION_GROUP_COMPLETE, new SimpleProtocolHandler<TransactionGroupCompleteInputPacket>(){});
 
         return protocolDispatcher;
     }

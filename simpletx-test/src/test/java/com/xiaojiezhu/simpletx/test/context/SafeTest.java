@@ -1,5 +1,7 @@
 package com.xiaojiezhu.simpletx.test.context;
 
+import com.xiaojiezhu.simpletx.common.executor.FixThreadExecutor;
+import com.xiaojiezhu.simpletx.protocol.client.ExpireFutureContainer;
 import com.xiaojiezhu.simpletx.server.transaction.TransactionBlock;
 import com.xiaojiezhu.simpletx.server.transaction.context.DefaultTransactionServerContext;
 
@@ -12,7 +14,7 @@ import java.util.UUID;
 public class SafeTest {
 
     public static void main(String[] args) {
-        DefaultTransactionServerContext context = new DefaultTransactionServerContext();
+        DefaultTransactionServerContext context = new DefaultTransactionServerContext(new FixThreadExecutor(10) , new ExpireFutureContainer());
 
         Thread t1 = new Thread(()->{
             long lastPrintTime = 0 ;

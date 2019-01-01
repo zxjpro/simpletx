@@ -1,5 +1,8 @@
 package com.xiaojiezhu.simpletx.server;
 
+import com.xiaojiezhu.simpletx.common.executor.FixThreadExecutor;
+import com.xiaojiezhu.simpletx.common.executor.ThreadExecutor;
+import com.xiaojiezhu.simpletx.protocol.client.ExpireFutureContainer;
 import com.xiaojiezhu.simpletx.protocol.server.DefaultServer;
 import com.xiaojiezhu.simpletx.server.config.SimpletxConfig;
 import com.xiaojiezhu.simpletx.server.config.SimpletxConfigLoader;
@@ -29,8 +32,12 @@ public class SimpletxServer {
         initLog4j2();
         SimpletxConfig simpletxConfig = SimpletxConfigLoader.loadConfig(SimpletxConfigLoader.getConfPath());
 
+
+
         DefaultServer server = new DefaultServer(simpletxConfig.getHost(), simpletxConfig.getPort());
-        TransactionServerContext serverContext = new DefaultTransactionServerContext();
+
+        ThreadExecutor threadExecutor = new FixThreadExecutor(simpletxConfig.getLogicThreadSize());
+        TransactionServerContext serverContext = new DefaultTransactionServerContext(threadExecutor , new ExpireFutureContainer());
         server.setServerContext(serverContext);
 
         DispatcherHelper dispatcherHelper = new DispatcherHelper(serverContext , simpletxConfig);

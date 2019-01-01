@@ -56,13 +56,12 @@ public abstract class AbstractProtocolChannelHandler extends SimpleChannelInboun
      */
     protected void invokeCallback(FutureContainer futureContainer , ResponseInputPacket inputPacket){
         int responseMessageId = inputPacket.getResponseMessageId();
-        FutureCondition futureCondition = futureContainer.find(responseMessageId);
+        FutureCondition futureCondition = futureContainer.findAndRemove(responseMessageId);
         if(futureCondition == null){
             throw new NullPointerException("not found futureCondition , id : "  + responseMessageId);
         }
-        futureContainer.remove(responseMessageId);
         futureCondition.setValue(inputPacket);
-        futureCondition.signalAll();
+        futureCondition.signal();
 
         final FutureListener futureListener = futureCondition.getFutureListener();
         if(futureListener != null){

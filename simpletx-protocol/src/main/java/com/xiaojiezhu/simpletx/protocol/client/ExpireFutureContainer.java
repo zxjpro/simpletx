@@ -16,7 +16,7 @@ public class ExpireFutureContainer extends SimpleFutureContainer {
 
     public final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private final ConcurrentHashMap<Integer, Long> SAVE_TIME = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Object, Long> SAVE_TIME = new ConcurrentHashMap<>();
 
     private int expireTime;
 
@@ -32,13 +32,20 @@ public class ExpireFutureContainer extends SimpleFutureContainer {
     }
 
     @Override
-    public void add(int id, FutureCondition futureCondition) {
+    public void add(Object id, FutureCondition futureCondition) {
         super.add(id, futureCondition);
         this.SAVE_TIME.put(id ,System.currentTimeMillis());
     }
 
+
     @Override
-    public void remove(int id) {
+    public FutureCondition findAndRemove(Object id) {
+        this.SAVE_TIME.remove(id);
+        return super.findAndRemove(id);
+    }
+
+    @Override
+    public void remove(Object id) {
         super.remove(id);
         this.SAVE_TIME.remove(id);
     }
@@ -50,10 +57,10 @@ public class ExpireFutureContainer extends SimpleFutureContainer {
             while (true){
                 try {
                     Thread.sleep(expireTime);
-                    Iterator<Map.Entry<Integer, Long>> iterator = SAVE_TIME.entrySet().iterator();
+                    Iterator<Map.Entry<Object, Long>> iterator = SAVE_TIME.entrySet().iterator();
                     int count = 0;
                     while (iterator.hasNext()){
-                        Map.Entry<Integer, Long> entry = iterator.next();
+                        Map.Entry<Object, Long> entry = iterator.next();
                         Long time = entry.getValue();
                         if((System.currentTimeMillis() - time) >= expireTime){
                             iterator.remove();
@@ -61,7 +68,9 @@ public class ExpireFutureContainer extends SimpleFutureContainer {
                         }
                     }
 
-                    LOG.warn("clean expire future condition " + count + " size");
+                    if(count > 0){
+                        LOG.warn("clean expire future condition " + count + " size");
+                    }
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();

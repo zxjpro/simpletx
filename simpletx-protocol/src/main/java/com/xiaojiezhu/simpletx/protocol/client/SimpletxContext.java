@@ -23,4 +23,17 @@ public interface SimpletxContext {
      * @return
      */
     Executor getExecutor();
+
+    /**
+     * get the appName
+     * @return
+     */
+    String getAppName();
+
+    /**
+     * get the appid
+     * @return
+     */
+    String getAppid();
+
 }

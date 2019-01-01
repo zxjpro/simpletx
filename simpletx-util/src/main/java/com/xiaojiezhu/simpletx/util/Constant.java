@@ -33,7 +33,12 @@ public class Constant {
             /**
              * simpletx-server notify all of the transaction group to rollback transaction
              */
-            public static final int CODE_NOTIFY_ROLLBACK = 231;
+            public static final int CODE_NOTIFY_ROLLBACK = 232;
+
+            /**
+             * simpletx-server notify root transaction , the transaction group is invoke complete
+             */
+            public static final int CODE_TRANSACTION_GROUP_COMPLETE = 233;
         }
 
 
@@ -50,6 +55,8 @@ public class Constant {
             public static final String ID = Client.ConnectionSession.ID;
             public static final String APP_NAME = "_appName";
             public static final String APPID = "_appid";
+
+            public static final String EXPIRE_TIME = "simpletx.expireTime";
         }
     }
 
@@ -83,6 +90,10 @@ public class Constant {
              * client send simpletx-server to rollback
              */
             public static final int CODE_ROLLBACK = 234;
+            /**
+             * complete local transaction , to notify simpletx-server
+             */
+            public static final int CODE_COMPLETE_LOCAL_TRANSACTION = 235;
         }
 
 

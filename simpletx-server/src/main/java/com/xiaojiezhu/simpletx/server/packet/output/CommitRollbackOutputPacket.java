@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
+ * notify client to invoke local transaction
  * @author xiaojie.zhu
  * time 2018/12/23 22:49
  */

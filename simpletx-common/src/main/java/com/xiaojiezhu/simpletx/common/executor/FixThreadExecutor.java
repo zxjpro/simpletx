@@ -30,7 +30,6 @@ public class FixThreadExecutor implements ThreadExecutor {
 
         this.queue = new LinkedBlockingQueue<>();
 
-        int corePoolSize = this.threadSize / 2 + 1;
         this.pool = new ThreadPoolExecutor(this.threadSize , this.threadSize , 60 , TimeUnit.MINUTES ,
                 this.queue , new DefaultThreadFactory());
     }

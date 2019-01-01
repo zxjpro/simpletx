@@ -42,14 +42,10 @@ public class KryoObjectCodec extends AbstractObjectCodec {
 
         byte[] bytes = null;
 
-        try {
-            bout = new ByteArrayOutputStream();
-            out = getOutput(bout);
-            kryoLocal.get().writeClassAndObject(out , object);
-            out.flush();
-        } finally {
-//            IOUtils.close(out);
-        }
+        bout = new ByteArrayOutputStream();
+        out = getOutput(bout);
+        kryoLocal.get().writeClassAndObject(out , object);
+        out.flush();
 
         bytes = bout.toByteArray();
 

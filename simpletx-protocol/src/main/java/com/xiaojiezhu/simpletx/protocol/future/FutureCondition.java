@@ -1,83 +1,28 @@
 package com.xiaojiezhu.simpletx.protocol.future;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author xiaojie.zhu
- * time 2018/12/24 23:03
+ * time 2018-12-30 21:25
  */
-public class FutureCondition {
+public interface FutureCondition {
 
-    @Getter
-    private int id;
+    Object getId();
 
-    private final ReentrantLock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
+    Future<?> getFuture();
 
-    @Setter
-    @Getter
-    private Future<?> future;
+    FutureListener<?> getFutureListener();
 
-    @Setter
-    @Getter
-    private FutureListener<?> futureListener;
+    void setFutureListener(FutureListener<?> futureListener);
 
-    public FutureCondition(int id) {
-        this.id = id;
-    }
+    Object getValue();
 
-    @Setter
-    @Getter
-    Object value;
+    void setValue(Object value);
 
+    void await() throws InterruptedException;
 
-    public void await() throws InterruptedException{
-        this.lock.lock();
+    boolean await(long time, TimeUnit unit) throws InterruptedException;
 
-        try {
-            this.condition.await();
-        } finally {
-            this.lock.unlock();
-        }
-
-
-    }
-
-    boolean await(long time, TimeUnit unit) throws InterruptedException{
-        this.lock.lock();
-
-        boolean r = false;
-        try {
-            r = this.condition.await(time , unit);
-        } finally {
-            this.lock.unlock();
-        }
-
-        return r;
-    }
-
-    public void signal(){
-        this.lock.lock();
-
-        try {
-            this.condition.signal();
-        } finally {
-            this.lock.unlock();
-        }
-    }
-
-    public void signalAll(){
-        this.lock.lock();
-
-        try {
-            this.condition.signalAll();
-        } finally {
-            this.lock.unlock();
-        }
-    }
+    void signal();
 }

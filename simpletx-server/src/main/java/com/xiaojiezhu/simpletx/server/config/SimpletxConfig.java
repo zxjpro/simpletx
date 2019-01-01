@@ -19,11 +19,25 @@ public class SimpletxConfig {
         System.setProperty(Constant.SIMPLETX_SERVER , String.valueOf(true));
     }
 
+    private String password;
+
     private String host = "0.0.0.0";
 
     private int port = 10290;
 
+    /**
+     * 事务在server的超时时间
+     */
+    private long expireTime = 30000;
+
+    /**
+     * netty的worker线程数量
+     */
     private int workerThreadSize = Runtime.getRuntime().availableProcessors() * 4;
 
-    private String password;
+    /**
+     * 具体处理逻辑的默认线程数量
+     */
+    private int logicThreadSize = Runtime.getRuntime().availableProcessors() * 8;
+
 }

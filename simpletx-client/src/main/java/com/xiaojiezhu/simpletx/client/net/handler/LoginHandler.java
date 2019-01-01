@@ -1,4 +1,4 @@
-package com.xiaojiezhu.simpletx.client.net;
+package com.xiaojiezhu.simpletx.client.net.handler;
 
 import com.xiaojiezhu.simpletx.client.exception.AuthorizationException;
 import com.xiaojiezhu.simpletx.client.net.packet.input.LoginInputPacket;
@@ -17,7 +17,6 @@ import com.xiaojiezhu.simpletx.util.Constant;
 import com.xiaojiezhu.simpletx.util.MessageIdGenerator;
 import com.xiaojiezhu.simpletx.util.security.DigestUtil;
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -28,13 +27,20 @@ import java.util.concurrent.TimeoutException;
  * @author xiaojie.zhu
  * time 2018/12/22 11:03
  */
-@AllArgsConstructor
 public class LoginHandler implements ProtocolHandler<LoginInputPacket> {
 
     private final SimpletxContext simpletxContext;
     private final String appName;
     private final String appid;
     private final String password;
+
+    public LoginHandler(SimpletxContext simpletxContext, String appName, String appid, String password) {
+        this.simpletxContext = simpletxContext;
+        this.appName = appName;
+        this.appid = appid;
+        this.password = password;
+
+    }
 
     @Override
     public void handler(ConnectionContext connectionContext, int msgId , int code , LoginInputPacket content) {
@@ -43,7 +49,7 @@ public class LoginHandler implements ProtocolHandler<LoginInputPacket> {
         LoginOutputPacket packet = new LoginOutputPacket(this.appName , this.appid , pwd);
 
         final int messageId = MessageIdGenerator.getInstance().next();
-        final Future<OkErrorPacket> future = Futures.createOkErrorFuture(this.simpletxContext , messageId);
+        final Future<OkErrorPacket> future = Futures.createFuture(this.simpletxContext.getFutureContainer() , messageId);
 
         connectionContext.sendMessage(new MessageCreator() {
             @Override
@@ -53,16 +59,16 @@ public class LoginHandler implements ProtocolHandler<LoginInputPacket> {
             }
         });
         try {
-            future.await(30000 , TimeUnit.MILLISECONDS);
+            future.await(10000 , TimeUnit.MILLISECONDS);
         } catch (InterruptedException | TimeoutException e) {
-            throw new SocketRuntimeException("login simpletx-server timeout");
+            throw new SocketRuntimeException("login simpletx-server timeout ");
         }
 
         OkErrorPacket okErrorPacket = future.getNow();
         if(okErrorPacket.isOk()){
             connectionContext.set(Constant.Client.ConnectionSession.LOGIN_SUCCESS , true);
         }else{
-            throw new AuthorizationException("login fail , " + okErrorPacket.getMsg());
+            throw new AuthorizationException("login fail , " + okErrorPacket.getMessage());
         }
 
     }
